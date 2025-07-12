@@ -27,8 +27,65 @@ const HomeScreen: React.FC = () => {
   };
 
   const handleVirtualTour = (property: any) => {
-    setSelectedProperty(property);
-    setShowPropertyModal(true);
+    console.log("Virtual tour clicked for property:", property);
+    // Create a virtual tour modal without opening property details
+    const virtualTourModal = document.createElement('div');
+    virtualTourModal.innerHTML = `
+      <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onclick="this.remove()">
+        <div class="relative max-w-4xl w-full h-[80vh] bg-black rounded-lg overflow-hidden" onclick="event.stopPropagation()">
+          <button class="absolute top-4 right-4 z-10 text-white bg-black/50 hover:bg-black/75 rounded-full p-2" onclick="this.closest('.fixed').remove()">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+          <div class="absolute top-4 left-4 z-10 bg-black/50 backdrop-blur-sm rounded-lg p-3">
+            <h3 class="text-white font-semibold">${property.title}</h3>
+            <p class="text-white/80 text-sm">Virtual Tour</p>
+          </div>
+          <div class="w-full h-full flex items-center justify-center">
+            <div class="relative w-full h-full">
+              <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=800" 
+                   alt="Living Room" class="w-full h-full object-cover virtual-tour-image" data-room="0">
+              <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                <button class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-sm" onclick="previousRoom()">← Previous</button>
+                <span class="bg-white/20 text-white px-3 py-1 rounded-full text-sm room-indicator">Living Room (1/5)</span>
+                <button class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-sm" onclick="nextRoom()">Next →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(virtualTourModal);
+    
+    // Add navigation functionality
+    const rooms = [
+      { name: "Living Room", url: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=800" },
+      { name: "Kitchen", url: "https://images.unsplash.com/photo-1586105251261-72a756497a11?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=800" },
+      { name: "Bedroom", url: "https://images.unsplash.com/photo-1540518614846-7eded47ee437?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=800" },
+      { name: "Bathroom", url: "https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=800" },
+      { name: "Balcony", url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=800" }
+    ];
+    
+    let currentRoom = 0;
+    
+    window.nextRoom = () => {
+      currentRoom = (currentRoom + 1) % rooms.length;
+      updateRoom();
+    };
+    
+    window.previousRoom = () => {
+      currentRoom = (currentRoom - 1 + rooms.length) % rooms.length;
+      updateRoom();
+    };
+    
+    function updateRoom() {
+      const image = virtualTourModal.querySelector('.virtual-tour-image');
+      const indicator = virtualTourModal.querySelector('.room-indicator');
+      image.src = rooms[currentRoom].url;
+      image.alt = rooms[currentRoom].name;
+      indicator.textContent = `${rooms[currentRoom].name} (${currentRoom + 1}/${rooms.length})`;
+    }
   };
 
   const handleWishlistToggle = (property: any) => {

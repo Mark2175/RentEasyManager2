@@ -184,7 +184,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
             )}
             <Button 
               size="default" 
-              className="bg-rent-accent text-white hover:bg-blue-700 font-semibold px-8 py-2 shadow-md transform hover:scale-105 transition-all duration-200"
+              className="bg-blue-600 text-white hover:bg-blue-700 font-semibold px-8 py-2 shadow-md transform hover:scale-105 transition-all duration-200 border-0"
               onClick={(e) => {
                 e.stopPropagation();
                 onViewDetails(property);
