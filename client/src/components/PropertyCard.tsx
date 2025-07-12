@@ -22,9 +22,10 @@ interface PropertyCardProps {
     amenities?: string[];
   };
   onViewDetails: (property: any) => void;
+  onVirtualTour?: (property: any) => void;
 }
 
-const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails }) => {
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, onVirtualTour }) => {
   const formatRent = (rent: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -103,6 +104,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails }) 
                 size="sm" 
                 variant="outline" 
                 className="bg-rent-blue text-rent-accent border-rent-accent"
+                onClick={() => onVirtualTour?.(property)}
               >
                 <Eye className="h-4 w-4 mr-1" />
                 Virtual Tour

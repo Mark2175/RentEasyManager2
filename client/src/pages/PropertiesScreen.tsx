@@ -31,6 +31,11 @@ const PropertiesScreen: React.FC = () => {
     setShowPropertyModal(true);
   };
 
+  const handleVirtualTour = (property: any) => {
+    setSelectedProperty(property);
+    setShowPropertyModal(true);
+  };
+
   const propertyTypes = ['1BHK', '2BHK', '3BHK', '4BHK+'];
 
   const mockProperties = [
@@ -126,6 +131,7 @@ const PropertiesScreen: React.FC = () => {
                 key={property.id}
                 property={property}
                 onViewDetails={handleViewProperty}
+                onVirtualTour={handleVirtualTour}
               />
             ))}
           </div>
