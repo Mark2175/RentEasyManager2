@@ -7,6 +7,7 @@ RentEasy Solutions is a comprehensive full-stack web application for property re
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Database setup: PostgreSQL integration completed successfully (July 2025).
 
 ## System Architecture
 
