@@ -5,7 +5,7 @@ import {
   type LocalBusiness, type InsertLocalBusiness, type NeighborhoodEvent, type InsertNeighborhoodEvent
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -16,7 +16,7 @@ export interface IStorage {
 
   // Property operations
   getProperty(id: number): Promise<Property | undefined>;
-  getProperties(filters?: { area?: string; propertyType?: string; minRent?: number; maxRent?: number }): Promise<Property[]>;
+  getProperties(filters?: { area?: string; propertyType?: string; minRent?: number; maxRent?: number }): Promise<any[]>;
   createProperty(property: InsertProperty): Promise<Property>;
   updateProperty(id: number, updates: Partial<Property>): Promise<Property | undefined>;
 
@@ -93,31 +93,43 @@ export class DatabaseStorage implements IStorage {
     return property || undefined;
   }
 
-  async getProperties(filters?: { area?: string; propertyType?: string; minRent?: number; maxRent?: number }): Promise<Property[]> {
-    let query = db.select().from(properties).where(eq(properties.isAvailable, true));
+  async getProperties(filters?: { area?: string; propertyType?: string; minRent?: number; maxRent?: number }): Promise<any[]> {
+    // Get properties with landlord and broker information using raw SQL for better control
+    const result = await db.execute(sql`
+      SELECT 
+        p.id, p.property_id as "propertyId", p.landlord_id as "landlordId", p.broker_id as "brokerId", 
+        p.tenant_id as "tenantId", p.title, p.description, p.area, p.city, p.property_type as "propertyType", 
+        p.rent, p.sqft, p.bedrooms, p.bathrooms, p.amenities, p.images, p.is_available as "isAvailable", 
+        p.has_virtual_tour as "hasVirtualTour", p.created_at as "createdAt", p.updated_at as "updatedAt",
+        l.full_name as "landlordName", b.full_name as "brokerName", 
+        CASE WHEN p.broker_id IS NOT NULL THEN 25000 ELSE NULL END as "brokerageFee"
+      FROM properties p 
+      LEFT JOIN users l ON p.landlord_id = l.id 
+      LEFT JOIN users b ON p.broker_id = b.id 
+      WHERE p.is_available = true
+      ORDER BY p.created_at DESC
+    `);
     
-    // Note: For simplicity, we'll return all available properties for now
-    // In a full implementation, we'd add proper filtering with drizzle-orm
-    const allProperties = await query;
+    const allProperties = result.rows;
     
     if (!filters) return allProperties;
     
     let filtered = allProperties;
     
     if (filters.area) {
-      filtered = filtered.filter(p => p.area.toLowerCase().includes(filters.area!.toLowerCase()));
+      filtered = filtered.filter((p: any) => p.area && p.area.toLowerCase().includes(filters.area!.toLowerCase()));
     }
     
     if (filters.propertyType) {
-      filtered = filtered.filter(p => p.propertyType === filters.propertyType);
+      filtered = filtered.filter((p: any) => p.propertyType === filters.propertyType);
     }
     
     if (filters.minRent) {
-      filtered = filtered.filter(p => parseFloat(p.rent) >= filters.minRent!);
+      filtered = filtered.filter((p: any) => parseFloat(p.rent) >= filters.minRent!);
     }
     
     if (filters.maxRent) {
-      filtered = filtered.filter(p => parseFloat(p.rent) <= filters.maxRent!);
+      filtered = filtered.filter((p: any) => parseFloat(p.rent) <= filters.maxRent!);
     }
     
     return filtered;

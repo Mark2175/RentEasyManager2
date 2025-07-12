@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Bed, Bath, Square, Eye, Heart, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { MapPin, Bed, Bath, Square, Eye, Heart, ChevronLeft, ChevronRight, X, User, Building, Phone, Mail, Star } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
 
 interface PropertyDetailModalProps {
   property: any;
@@ -13,8 +14,17 @@ interface PropertyDetailModalProps {
 const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, isOpen, onClose }) => {
   const [showVirtualTour, setShowVirtualTour] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useUser();
   
   if (!property) return null;
+
+  const handleWishlistToggle = () => {
+    if (isInWishlist(property.id)) {
+      removeFromWishlist(property.id);
+    } else {
+      addToWishlist(property);
+    }
+  };
 
   const formatRent = (rent: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -118,15 +128,87 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, isO
             </div>
           )}
           
+          {/* Landlord/Broker Information */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold text-gray-800">Listed by</h4>
+              <Badge variant={property.brokerId ? "secondary" : "default"} className={property.brokerId ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}>
+                {property.brokerId ? "Broker" : "Owner"}
+              </Badge>
+            </div>
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="bg-rent-accent text-white p-2 rounded-full">
+                {property.brokerId ? <Building className="h-4 w-4" /> : <User className="h-4 w-4" />}
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">{property.brokerId ? property.brokerName || 'Professional Broker' : property.landlordName || 'Property Owner'}</p>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                  <span>4.8 (120 reviews)</span>
+                </div>
+              </div>
+            </div>
+            
+            {property.brokerId && property.brokerageFee && (
+              <div className="bg-yellow-50 p-3 rounded-lg mb-3">
+                <p className="text-sm text-yellow-800">
+                  <strong>Brokerage Fee:</strong> ₹{property.brokerageFee.toLocaleString()}
+                </p>
+                <p className="text-xs text-yellow-700 mt-1">
+                  Includes property viewing, documentation assistance, and negotiation support
+                </p>
+              </div>
+            )}
+            
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" className="text-rent-accent border-rent-accent">
+                <Phone className="h-4 w-4 mr-1" />
+                Call
+              </Button>
+              <Button variant="outline" size="sm" className="text-rent-accent border-rent-accent">
+                <Mail className="h-4 w-4 mr-1" />
+                Message
+              </Button>
+            </div>
+          </div>
+
+          {/* Services Offered */}
+          <div className="bg-rent-blue p-4 rounded-lg">
+            <h4 className="font-semibold text-rent-accent mb-3">Services Available</h4>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="flex items-center text-rent-accent">
+                <div className="w-2 h-2 bg-rent-accent rounded-full mr-2"></div>
+                Home Cleaning
+              </div>
+              <div className="flex items-center text-rent-accent">
+                <div className="w-2 h-2 bg-rent-accent rounded-full mr-2"></div>
+                Moving Services
+              </div>
+              <div className="flex items-center text-rent-accent">
+                <div className="w-2 h-2 bg-rent-accent rounded-full mr-2"></div>
+                Maintenance
+              </div>
+              <div className="flex items-center text-rent-accent">
+                <div className="w-2 h-2 bg-rent-accent rounded-full mr-2"></div>
+                Nearby Restaurants
+              </div>
+            </div>
+          </div>
+          
           <div className="flex items-center justify-between py-4">
             <div>
               <div className="text-2xl font-bold text-rent-accent">{formatRent(property.rent)}</div>
               <div className="text-sm text-gray-600">per month</div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Heart className="h-4 w-4 mr-1" />
-                Save
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleWishlistToggle}
+                className={isInWishlist(property.id) ? "bg-red-50 text-red-600 border-red-200" : ""}
+              >
+                <Heart className={`h-4 w-4 mr-1 ${isInWishlist(property.id) ? 'fill-red-600' : ''}`} />
+                {isInWishlist(property.id) ? 'Saved' : 'Save'}
               </Button>
               {property.hasVirtualTour && (
                 <Button 

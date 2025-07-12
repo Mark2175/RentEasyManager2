@@ -8,7 +8,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useQuery } from '@tanstack/react-query';
 
 const PropertiesScreen: React.FC = () => {
-  const { setSelectedProperty, setShowPropertyModal, searchFilters, setSearchFilters } = useUser();
+  const { setSelectedProperty, setShowPropertyModal, searchFilters, setSearchFilters, wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useUser();
   const [selectedType, setSelectedType] = useState('');
 
   const { data: properties, isLoading } = useQuery({
@@ -35,6 +35,14 @@ const PropertiesScreen: React.FC = () => {
     console.log("Virtual tour clicked for property:", property);
     setSelectedProperty(property);
     setShowPropertyModal(true);
+  };
+
+  const handleWishlistToggle = (property: any) => {
+    if (isInWishlist(property.id)) {
+      removeFromWishlist(property.id);
+    } else {
+      addToWishlist(property);
+    }
   };
 
   const propertyTypes = ['1BHK', '2BHK', '3BHK', '4BHK+'];
@@ -133,6 +141,8 @@ const PropertiesScreen: React.FC = () => {
                 property={property}
                 onViewDetails={handleViewProperty}
                 onVirtualTour={handleVirtualTour}
+                onWishlistToggle={handleWishlistToggle}
+                isInWishlist={isInWishlist(property.id)}
               />
             ))}
           </div>
