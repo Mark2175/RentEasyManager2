@@ -2,6 +2,7 @@ import React from 'react';
 import { Truck, Box, Wrench, Zap, PaintBucket, Utensils, ShoppingCart, Gift } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 const ServicesScreen: React.FC = () => {
   const movingServices = [
@@ -37,13 +38,29 @@ const ServicesScreen: React.FC = () => {
       <div className="bg-rent-blue px-6 py-4">
         <h1 className="text-xl font-bold text-rent-accent mb-4">Services</h1>
         <p className="text-gray-600 text-sm">Complete solutions for your rental needs</p>
+        
+        {/* USP Banner */}
+        <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-3 rounded-lg mt-4 shadow-md">
+          <div className="flex items-center gap-2">
+            <div className="bg-white/20 rounded-full p-1">
+              <Gift className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm">FREE Services with Brokerage</p>
+              <p className="text-xs opacity-90">These services are complimentary when you pay brokerage through us</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="px-6 py-4 space-y-6">
         {/* Moving Services */}
-        <Card className="bg-white shadow-sm">
+        <Card className="bg-white shadow-sm border-l-4 border-green-500">
           <CardContent className="p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">Moving & Packing</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <h3 className="font-semibold text-gray-800">Moving & Packing</h3>
+              <Badge className="bg-green-500 text-white text-xs">FREE</Badge>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               {movingServices.map(({ icon: Icon, label, color }, index) => (
                 <div key={index} className="text-center">
@@ -51,6 +68,7 @@ const ServicesScreen: React.FC = () => {
                     <Icon className="h-6 w-6 text-rent-accent" />
                   </div>
                   <span className="text-sm text-gray-600">{label}</span>
+                  <p className="text-xs text-green-600 mt-1">Free with brokerage</p>
                 </div>
               ))}
             </div>
@@ -58,9 +76,12 @@ const ServicesScreen: React.FC = () => {
         </Card>
 
         {/* Maintenance Services */}
-        <Card className="bg-white shadow-sm">
+        <Card className="bg-white shadow-sm border-l-4 border-green-500">
           <CardContent className="p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">Maintenance & Repairs</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <h3 className="font-semibold text-gray-800">Maintenance & Repairs</h3>
+              <Badge className="bg-green-500 text-white text-xs">FREE</Badge>
+            </div>
             <div className="grid grid-cols-3 gap-4">
               {maintenanceServices.map(({ icon: Icon, label, color }, index) => (
                 <div key={index} className="text-center">
@@ -68,6 +89,7 @@ const ServicesScreen: React.FC = () => {
                     <Icon className="h-4 w-4 text-rent-accent" />
                   </div>
                   <span className="text-xs text-gray-600">{label}</span>
+                  <p className="text-xs text-green-600 mt-1">Free with brokerage</p>
                 </div>
               ))}
             </div>

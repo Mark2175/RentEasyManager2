@@ -157,6 +157,19 @@ const HomeScreen: React.FC = () => {
           </div>
         </div>
         
+        {/* USP Banner */}
+        <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-3 rounded-lg mb-4 shadow-md">
+          <div className="flex items-center gap-2">
+            <div className="bg-white/20 rounded-full p-1">
+              <Wrench className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm">RentEasy Advantage</p>
+              <p className="text-xs opacity-90">Pay brokerage, get moving & maintenance services FREE!</p>
+            </div>
+          </div>
+        </div>
+        
         {/* Search Bar */}
         <div className="relative">
           <Input

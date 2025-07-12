@@ -102,6 +102,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
                 {freshnessBadge.text}
               </Badge>
             )}
+            {property.brokerId && (
+              <Badge className="bg-green-500 text-white font-medium">
+                FREE Services
+              </Badge>
+            )}
             <Badge variant={property.isAvailable ? "default" : "secondary"} className="bg-green-100 text-green-800">
               {property.isAvailable ? "Available" : "Occupied"}
             </Badge>
@@ -146,9 +151,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
                       {property.brokerageFee && (
                         <p><strong>Brokerage Fee:</strong> ₹{property.brokerageFee.toLocaleString()}</p>
                       )}
-                      <p className="text-yellow-600 mt-1">• Property viewing assistance</p>
-                      <p className="text-yellow-600">• Documentation help</p>
-                      <p className="text-yellow-600">• Negotiation support</p>
+                      <div className="bg-green-50 border border-green-200 rounded p-2 mt-2">
+                        <p className="text-green-700 font-semibold text-sm">🎯 RentEasy Advantage:</p>
+                        <p className="text-green-600 text-sm">Pay brokerage, get these services FREE:</p>
+                        <p className="text-green-600 text-xs">• Moving & packing service</p>
+                        <p className="text-green-600 text-xs">• Property maintenance</p>
+                        <p className="text-green-600 text-xs">• Legal documentation</p>
+                        <p className="text-green-600 text-xs">• 24/7 support</p>
+                      </div>
                     </div>
                   ) : (
                     <div>

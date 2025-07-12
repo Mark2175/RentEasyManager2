@@ -9,6 +9,7 @@ RentEasy Solutions is a comprehensive full-stack web application for property re
 Preferred communication style: Simple, everyday language.
 Database setup: PostgreSQL integration completed successfully (July 2025).
 UI/UX Requirements: View Details buttons should be visible at all times on property cards.
+Business USP: Core value proposition - "Pay brokerage, get services free" - prominently displayed across the app.
 
 ## System Architecture
 
@@ -61,10 +62,11 @@ UI/UX Requirements: View Details buttons should be visible at all times on prope
 - **Agreements**: Digital lease agreement generation
 
 ### Service Integration
-- **Moving Services**: Integrated mover and packer services
-- **Maintenance**: Property maintenance and repair services
+- **Moving Services**: Integrated mover and packer services (FREE with brokerage)
+- **Maintenance**: Property maintenance and repair services (FREE with brokerage)
 - **Local Businesses**: Directory of local restaurants and services
 - **Financial Services**: Bajaj Finance FD integration for landlords
+- **Business Model**: Core USP - customers pay brokerage fees and receive moving, maintenance, and support services at no additional cost
 
 ## Data Flow
 
