@@ -26,11 +26,12 @@ Preferred communication style: Simple, everyday language.
 - **Development**: Hot reload with Vite integration in development mode
 
 ### Database Architecture
-- **Database**: PostgreSQL with Drizzle ORM
-- **Connection**: Neon Database serverless connection
+- **Database**: PostgreSQL with Drizzle ORM (Production Ready)
+- **Connection**: Replit-hosted PostgreSQL database
 - **Schema**: Centralized schema definition in `shared/schema.ts`
 - **Migrations**: Drizzle Kit for database migrations
 - **Type Safety**: Full TypeScript integration with Drizzle-Zod validation
+- **Sample Data**: Populated with realistic test data for development
 
 ## Key Components
 

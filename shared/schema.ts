@@ -5,9 +5,15 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   phoneNumber: text("phone_number").notNull().unique(),
-  name: text("name").notNull(),
-  role: text("role").notNull(), // 'tenant', 'landlord', 'broker', 'admin'
+  fullName: text("full_name").notNull(),
+  email: text("email"),
+  userType: text("user_type").notNull(), // 'tenant', 'landlord', 'broker', 'admin'
   isVerified: boolean("is_verified").default(false),
+  address: text("address"),
+  aadhaarNumber: text("aadhaar_number"),
+  panNumber: text("pan_number"),
+  bankAccount: text("bank_account"),
+  firebaseUid: text("firebase_uid"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -20,12 +26,10 @@ export const properties = pgTable("properties", {
   tenantId: integer("tenant_id").references(() => users.id),
   title: text("title").notNull(),
   description: text("description"),
-  address: text("address").notNull(),
-  city: text("city").notNull().default("Bangalore"),
   area: text("area").notNull(),
-  propertyType: text("property_type").notNull(), // '1BHK', '2BHK', '3BHK', '4BHK+'
-  rent: decimal("rent", { precision: 10, scale: 2 }).notNull(),
-  deposit: decimal("deposit", { precision: 10, scale: 2 }).notNull(),
+  city: text("city").notNull().default("Bangalore"),
+  propertyType: text("property_type").notNull(), // 'Apartment', 'Villa', 'House', etc.
+  rent: text("rent").notNull(),
   sqft: integer("sqft"),
   bedrooms: integer("bedrooms"),
   bathrooms: integer("bathrooms"),

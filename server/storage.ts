@@ -4,6 +4,8 @@ import {
   type Payment, type InsertPayment, type Referral, type InsertReferral, type Service, type InsertService,
   type LocalBusiness, type InsertLocalBusiness, type NeighborhoodEvent, type InsertNeighborhoodEvent
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -49,6 +51,279 @@ export interface IStorage {
   createNeighborhoodEvent(event: InsertNeighborhoodEvent): Promise<NeighborhoodEvent>;
 }
 
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByPhone(phoneNumber: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.phoneNumber, phoneNumber));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...insertUser,
+        isVerified: insertUser.isVerified || false,
+        email: insertUser.email || null,
+        address: insertUser.address || null,
+        aadhaarNumber: insertUser.aadhaarNumber || null,
+        panNumber: insertUser.panNumber || null,
+        bankAccount: insertUser.bankAccount || null,
+        firebaseUid: insertUser.firebaseUid || null,
+      })
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async getProperty(id: number): Promise<Property | undefined> {
+    const [property] = await db.select().from(properties).where(eq(properties.id, id));
+    return property || undefined;
+  }
+
+  async getProperties(filters?: { area?: string; propertyType?: string; minRent?: number; maxRent?: number }): Promise<Property[]> {
+    let query = db.select().from(properties).where(eq(properties.isAvailable, true));
+    
+    // Note: For simplicity, we'll return all available properties for now
+    // In a full implementation, we'd add proper filtering with drizzle-orm
+    const allProperties = await query;
+    
+    if (!filters) return allProperties;
+    
+    let filtered = allProperties;
+    
+    if (filters.area) {
+      filtered = filtered.filter(p => p.area.toLowerCase().includes(filters.area!.toLowerCase()));
+    }
+    
+    if (filters.propertyType) {
+      filtered = filtered.filter(p => p.propertyType === filters.propertyType);
+    }
+    
+    if (filters.minRent) {
+      filtered = filtered.filter(p => parseFloat(p.rent) >= filters.minRent!);
+    }
+    
+    if (filters.maxRent) {
+      filtered = filtered.filter(p => parseFloat(p.rent) <= filters.maxRent!);
+    }
+    
+    return filtered;
+  }
+
+  async createProperty(insertProperty: InsertProperty): Promise<Property> {
+    const propertyId = `RE${Date.now().toString().slice(-6)}`;
+    const [property] = await db
+      .insert(properties)
+      .values({
+        ...insertProperty,
+        propertyId,
+        description: insertProperty.description || null,
+        city: insertProperty.city || 'Bangalore',
+        landlordId: insertProperty.landlordId || null,
+        brokerId: insertProperty.brokerId || null,
+        tenantId: insertProperty.tenantId || null,
+        sqft: insertProperty.sqft || null,
+        bedrooms: insertProperty.bedrooms || null,
+        bathrooms: insertProperty.bathrooms || null,
+        amenities: insertProperty.amenities || null,
+        images: insertProperty.images || null,
+        isAvailable: insertProperty.isAvailable ?? true,
+        hasVirtualTour: insertProperty.hasVirtualTour ?? false,
+      })
+      .returning();
+    return property;
+  }
+
+  async updateProperty(id: number, updates: Partial<Property>): Promise<Property | undefined> {
+    const [property] = await db
+      .update(properties)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(properties.id, id))
+      .returning();
+    return property || undefined;
+  }
+
+  async getBooking(id: number): Promise<Booking | undefined> {
+    const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
+    return booking || undefined;
+  }
+
+  async getBookingsByUser(userId: number): Promise<Booking[]> {
+    return await db.select().from(bookings).where(eq(bookings.tenantId, userId));
+  }
+
+  async createBooking(insertBooking: InsertBooking): Promise<Booking> {
+    const [booking] = await db
+      .insert(bookings)
+      .values({
+        ...insertBooking,
+        status: insertBooking.status || 'pending',
+        propertyId: insertBooking.propertyId || null,
+        landlordId: insertBooking.landlordId || null,
+        tenantId: insertBooking.tenantId || null,
+        brokerageFee: insertBooking.brokerageFee || null,
+        leaseStartDate: insertBooking.leaseStartDate || null,
+        leaseEndDate: insertBooking.leaseEndDate || null,
+      })
+      .returning();
+    return booking;
+  }
+
+  async updateBooking(id: number, updates: Partial<Booking>): Promise<Booking | undefined> {
+    const [booking] = await db
+      .update(bookings)
+      .set(updates)
+      .where(eq(bookings.id, id))
+      .returning();
+    return booking || undefined;
+  }
+
+  async getPayment(id: number): Promise<Payment | undefined> {
+    const [payment] = await db.select().from(payments).where(eq(payments.id, id));
+    return payment || undefined;
+  }
+
+  async getPaymentsByUser(userId: number): Promise<Payment[]> {
+    return await db.select().from(payments).where(eq(payments.userId, userId));
+  }
+
+  async createPayment(insertPayment: InsertPayment): Promise<Payment> {
+    const [payment] = await db
+      .insert(payments)
+      .values({
+        ...insertPayment,
+        status: insertPayment.status || 'pending',
+        bookingId: insertPayment.bookingId || null,
+        userId: insertPayment.userId || null,
+        paymentGateway: insertPayment.paymentGateway || null,
+        transactionId: insertPayment.transactionId || null,
+      })
+      .returning();
+    return payment;
+  }
+
+  async updatePayment(id: number, updates: Partial<Payment>): Promise<Payment | undefined> {
+    const [payment] = await db
+      .update(payments)
+      .set(updates)
+      .where(eq(payments.id, id))
+      .returning();
+    return payment || undefined;
+  }
+
+  async getReferral(id: number): Promise<Referral | undefined> {
+    const [referral] = await db.select().from(referrals).where(eq(referrals.id, id));
+    return referral || undefined;
+  }
+
+  async getReferralsByUser(userId: number): Promise<Referral[]> {
+    return await db.select().from(referrals).where(eq(referrals.referrerId, userId));
+  }
+
+  async createReferral(insertReferral: InsertReferral): Promise<Referral> {
+    const [referral] = await db
+      .insert(referrals)
+      .values({
+        ...insertReferral,
+        status: insertReferral.status || 'pending',
+        referrerId: insertReferral.referrerId || null,
+        refereeId: insertReferral.refereeId || null,
+        bonusAmount: insertReferral.bonusAmount || null,
+      })
+      .returning();
+    return referral;
+  }
+
+  async updateReferral(id: number, updates: Partial<Referral>): Promise<Referral | undefined> {
+    const [referral] = await db
+      .update(referrals)
+      .set(updates)
+      .where(eq(referrals.id, id))
+      .returning();
+    return referral || undefined;
+  }
+
+  async getServices(): Promise<Service[]> {
+    return await db.select().from(services).where(eq(services.isActive, true));
+  }
+
+  async createService(insertService: InsertService): Promise<Service> {
+    const [service] = await db
+      .insert(services)
+      .values({
+        ...insertService,
+        description: insertService.description || null,
+        price: insertService.price || null,
+        providerId: insertService.providerId || null,
+        isActive: insertService.isActive ?? true,
+      })
+      .returning();
+    return service;
+  }
+
+  async getLocalBusinesses(area?: string): Promise<LocalBusiness[]> {
+    let query = db.select().from(localBusinesses).where(eq(localBusinesses.isActive, true));
+    const businesses = await query;
+    
+    if (area) {
+      return businesses.filter(business => business.area.toLowerCase().includes(area.toLowerCase()));
+    }
+    
+    return businesses;
+  }
+
+  async createLocalBusiness(insertBusiness: InsertLocalBusiness): Promise<LocalBusiness> {
+    const [business] = await db
+      .insert(localBusinesses)
+      .values({
+        ...insertBusiness,
+        menu: insertBusiness.menu || null,
+        isActive: insertBusiness.isActive ?? true,
+        phone: insertBusiness.phone || null,
+        ratings: insertBusiness.ratings || null,
+      })
+      .returning();
+    return business;
+  }
+
+  async getNeighborhoodEvents(area?: string): Promise<NeighborhoodEvent[]> {
+    let query = db.select().from(neighborhoodEvents).where(eq(neighborhoodEvents.isActive, true));
+    const events = await query;
+    
+    if (area) {
+      return events.filter(event => event.area.toLowerCase().includes(area.toLowerCase()));
+    }
+    
+    return events.sort((a, b) => a.eventDate.getTime() - b.eventDate.getTime());
+  }
+
+  async createNeighborhoodEvent(insertEvent: InsertNeighborhoodEvent): Promise<NeighborhoodEvent> {
+    const [event] = await db
+      .insert(neighborhoodEvents)
+      .values({
+        ...insertEvent,
+        description: insertEvent.description || null,
+        isActive: insertEvent.isActive ?? true,
+        organizerId: insertEvent.organizerId || null,
+      })
+      .returning();
+    return event;
+  }
+}
+
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private properties: Map<number, Property>;
@@ -92,9 +367,9 @@ export class MemStorage implements IStorage {
   private initializeSampleData() {
     // Sample users
     const sampleUsers = [
-      { phoneNumber: '+919876543210', name: 'Rajesh Kumar', role: 'tenant', isVerified: true },
-      { phoneNumber: '+919876543211', name: 'Priya Sharma', role: 'landlord', isVerified: true },
-      { phoneNumber: '+919876543212', name: 'Amit Singh', role: 'broker', isVerified: true },
+      { phoneNumber: '+919876543210', fullName: 'Rajesh Kumar', userType: 'tenant', isVerified: true },
+      { phoneNumber: '+919876543211', fullName: 'Priya Sharma', userType: 'landlord', isVerified: true },
+      { phoneNumber: '+919876543212', fullName: 'Amit Singh', userType: 'broker', isVerified: true },
     ];
 
     sampleUsers.forEach(user => {
@@ -102,6 +377,12 @@ export class MemStorage implements IStorage {
       this.users.set(id, {
         id,
         ...user,
+        email: null,
+        address: null,
+        aadhaarNumber: null,
+        panNumber: null,
+        bankAccount: null,
+        firebaseUid: null,
         isVerified: user.isVerified || false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -209,6 +490,12 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
+      email: insertUser.email || null,
+      address: insertUser.address || null,
+      aadhaarNumber: insertUser.aadhaarNumber || null,
+      panNumber: insertUser.panNumber || null,
+      bankAccount: insertUser.bankAccount || null,
+      firebaseUid: insertUser.firebaseUid || null,
       isVerified: insertUser.isVerified || false,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -462,4 +749,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
