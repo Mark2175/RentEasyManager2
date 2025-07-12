@@ -45,7 +45,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
 
   return (
     <TooltipProvider>
-      <Card className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+      <Card className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-200">
         <div className="relative" onClick={() => onViewDetails(property)}>
           <img 
             src={property.images?.[0] || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=200"} 
@@ -165,26 +165,26 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
           )}
         </div>
         
-        {/* Action Buttons - Always Visible */}
-        <div className="bg-gray-50 -mx-4 -mb-4 p-4 border-t">
-          <div className="flex gap-2 justify-end">
+        {/* Action Buttons - Always Visible & Prominent */}
+        <div className="bg-rent-accent/5 -mx-4 -mb-4 p-4 border-t-2 border-rent-accent/20">
+          <div className="flex gap-3 justify-center">
             {property.hasVirtualTour && (
               <Button 
-                size="sm" 
+                size="default" 
                 variant="outline" 
-                className="bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100 font-medium"
+                className="bg-yellow-50 text-yellow-700 border-yellow-300 hover:bg-yellow-100 font-semibold px-4 py-2 shadow-sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   onVirtualTour?.(property);
                 }}
               >
-                <Eye className="h-4 w-4 mr-1" />
+                <Eye className="h-4 w-4 mr-2" />
                 Virtual Tour
               </Button>
             )}
             <Button 
-              size="sm" 
-              className="bg-rent-accent text-white hover:bg-blue-700 font-medium px-6 py-2 shadow-sm"
+              size="default" 
+              className="bg-rent-accent text-white hover:bg-blue-700 font-semibold px-8 py-2 shadow-md transform hover:scale-105 transition-all duration-200"
               onClick={(e) => {
                 e.stopPropagation();
                 onViewDetails(property);
