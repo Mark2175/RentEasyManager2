@@ -8,6 +8,7 @@ RentEasy Solutions is a comprehensive full-stack web application for property re
 
 Preferred communication style: Simple, everyday language.
 Database setup: PostgreSQL integration completed successfully (July 2025).
+UI/UX Requirements: View Details buttons should be visible at all times on property cards.
 
 ## System Architecture
 

@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 
 const HomeScreen: React.FC = () => {
   const { userProfile } = useAuth();
-  const { setSelectedProperty, setShowPropertyModal } = useUser();
+  const { setSelectedProperty, setShowPropertyModal, wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useUser();
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ['/api/properties'],
@@ -24,6 +24,19 @@ const HomeScreen: React.FC = () => {
   const handleViewProperty = (property: any) => {
     setSelectedProperty(property);
     setShowPropertyModal(true);
+  };
+
+  const handleVirtualTour = (property: any) => {
+    setSelectedProperty(property);
+    setShowPropertyModal(true);
+  };
+
+  const handleWishlistToggle = (property: any) => {
+    if (isInWishlist(property.id)) {
+      removeFromWishlist(property.id);
+    } else {
+      addToWishlist(property);
+    }
   };
 
   const quickActions = [
@@ -137,6 +150,9 @@ const HomeScreen: React.FC = () => {
                 key={property.id}
                 property={property}
                 onViewDetails={handleViewProperty}
+                onVirtualTour={handleVirtualTour}
+                onWishlistToggle={handleWishlistToggle}
+                isInWishlist={isInWishlist(property.id)}
               />
             ))
           )}

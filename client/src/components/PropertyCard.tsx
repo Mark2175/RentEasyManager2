@@ -144,35 +144,39 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
           <span>{property.area}, {property.city}</span>
         </div>
         
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            {property.bedrooms && (
-              <span className="flex items-center">
-                <Bed className="h-4 w-4 mr-1" />
-                {property.bedrooms} Bed
-              </span>
-            )}
-            {property.bathrooms && (
-              <span className="flex items-center">
-                <Bath className="h-4 w-4 mr-1" />
-                {property.bathrooms} Bath
-              </span>
-            )}
-            {property.sqft && (
-              <span className="flex items-center">
-                <Square className="h-4 w-4 mr-1" />
-                {property.sqft} sq ft
-              </span>
-            )}
-          </div>
-          
-          <div className="flex gap-2">
+        <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+          {property.bedrooms && (
+            <span className="flex items-center">
+              <Bed className="h-4 w-4 mr-1" />
+              {property.bedrooms} Bed
+            </span>
+          )}
+          {property.bathrooms && (
+            <span className="flex items-center">
+              <Bath className="h-4 w-4 mr-1" />
+              {property.bathrooms} Bath
+            </span>
+          )}
+          {property.sqft && (
+            <span className="flex items-center">
+              <Square className="h-4 w-4 mr-1" />
+              {property.sqft} sq ft
+            </span>
+          )}
+        </div>
+        
+        {/* Action Buttons - Always Visible */}
+        <div className="bg-gray-50 -mx-4 -mb-4 p-4 border-t">
+          <div className="flex gap-2 justify-end">
             {property.hasVirtualTour && (
               <Button 
                 size="sm" 
                 variant="outline" 
-                className="bg-rent-blue text-rent-accent border-rent-accent"
-                onClick={() => onVirtualTour?.(property)}
+                className="bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100 font-medium"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onVirtualTour?.(property);
+                }}
               >
                 <Eye className="h-4 w-4 mr-1" />
                 Virtual Tour
@@ -180,8 +184,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
             )}
             <Button 
               size="sm" 
-              className="bg-rent-accent text-white hover:bg-blue-700"
-              onClick={() => onViewDetails(property)}
+              className="bg-rent-accent text-white hover:bg-blue-700 font-medium px-6 py-2 shadow-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onViewDetails(property);
+              }}
             >
               View Details
             </Button>

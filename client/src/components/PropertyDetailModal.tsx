@@ -161,11 +161,28 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, isO
             )}
             
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" className="text-rent-accent border-rent-accent">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-rent-accent border-rent-accent"
+                onClick={() => {
+                  const phoneNumber = property.brokerId ? "+91 98765 43210" : "+91 98765 43211";
+                  window.location.href = `tel:${phoneNumber}`;
+                }}
+              >
                 <Phone className="h-4 w-4 mr-1" />
                 Call
               </Button>
-              <Button variant="outline" size="sm" className="text-rent-accent border-rent-accent">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-rent-accent border-rent-accent"
+                onClick={() => {
+                  const message = `Hi, I'm interested in the property ${property.title} (${property.propertyId}) in ${property.area}. Can you please share more details?`;
+                  const phoneNumber = property.brokerId ? "+919876543210" : "+919876543211";
+                  window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
+                }}
+              >
                 <Mail className="h-4 w-4 mr-1" />
                 Message
               </Button>
