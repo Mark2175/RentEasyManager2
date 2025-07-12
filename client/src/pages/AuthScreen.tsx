@@ -45,6 +45,10 @@ const AuthScreen: React.FC = () => {
         const userData = await response.json();
         // Store user data in localStorage for temporary session
         localStorage.setItem('tempUser', JSON.stringify(userData));
+        toast({
+          title: "Success",
+          description: "Welcome back! Logging you in...",
+        });
         window.location.reload(); // Trigger auth context to recognize user
       } else {
         // New user, show registration form
@@ -81,10 +85,12 @@ const AuthScreen: React.FC = () => {
         createdAt: new Date().toISOString(),
       };
 
-      const response = await apiRequest({
-        url: '/api/users',
+      const response = await fetch('/api/users', {
         method: 'POST',
-        body: userData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
       });
 
       if (response.ok) {
