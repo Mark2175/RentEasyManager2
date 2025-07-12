@@ -62,6 +62,7 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, isO
   };
 
   const startVirtualTour = () => {
+    console.log("Starting virtual tour for property:", property);
     setShowVirtualTour(true);
     setCurrentImageIndex(0);
   };

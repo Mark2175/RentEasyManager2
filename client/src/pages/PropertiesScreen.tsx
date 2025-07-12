@@ -32,6 +32,7 @@ const PropertiesScreen: React.FC = () => {
   };
 
   const handleVirtualTour = (property: any) => {
+    console.log("Virtual tour clicked for property:", property);
     setSelectedProperty(property);
     setShowPropertyModal(true);
   };
