@@ -209,6 +209,7 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
+      isVerified: insertUser.isVerified || false,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -261,6 +262,17 @@ export class MemStorage implements IStorage {
       id,
       propertyId,
       description: insertProperty.description || null,
+      city: insertProperty.city || 'Bangalore',
+      landlordId: insertProperty.landlordId || null,
+      brokerId: insertProperty.brokerId || null,
+      tenantId: insertProperty.tenantId || null,
+      sqft: insertProperty.sqft || null,
+      bedrooms: insertProperty.bedrooms || null,
+      bathrooms: insertProperty.bathrooms || null,
+      amenities: insertProperty.amenities || null,
+      images: insertProperty.images || null,
+      isAvailable: insertProperty.isAvailable ?? true,
+      hasVirtualTour: insertProperty.hasVirtualTour ?? false,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -292,6 +304,12 @@ export class MemStorage implements IStorage {
       ...insertBooking,
       id,
       status: insertBooking.status || 'pending',
+      propertyId: insertBooking.propertyId || null,
+      landlordId: insertBooking.landlordId || null,
+      tenantId: insertBooking.tenantId || null,
+      brokerageFee: insertBooking.brokerageFee || null,
+      leaseStartDate: insertBooking.leaseStartDate || null,
+      leaseEndDate: insertBooking.leaseEndDate || null,
       createdAt: new Date(),
     };
     this.bookings.set(id, booking);
@@ -322,6 +340,10 @@ export class MemStorage implements IStorage {
       ...insertPayment,
       id,
       status: insertPayment.status || 'pending',
+      bookingId: insertPayment.bookingId || null,
+      userId: insertPayment.userId || null,
+      paymentGateway: insertPayment.paymentGateway || null,
+      transactionId: insertPayment.transactionId || null,
       createdAt: new Date(),
     };
     this.payments.set(id, payment);
@@ -352,6 +374,9 @@ export class MemStorage implements IStorage {
       ...insertReferral,
       id,
       status: insertReferral.status || 'pending',
+      referrerId: insertReferral.referrerId || null,
+      refereeId: insertReferral.refereeId || null,
+      bonusAmount: insertReferral.bonusAmount || null,
       createdAt: new Date(),
     };
     this.referrals.set(id, referral);
@@ -378,6 +403,9 @@ export class MemStorage implements IStorage {
       ...insertService,
       id,
       description: insertService.description || null,
+      price: insertService.price || null,
+      providerId: insertService.providerId || null,
+      isActive: insertService.isActive ?? true,
     };
     this.services.set(id, service);
     return service;
@@ -400,6 +428,9 @@ export class MemStorage implements IStorage {
       ...insertBusiness,
       id,
       menu: insertBusiness.menu || null,
+      isActive: insertBusiness.isActive ?? true,
+      phone: insertBusiness.phone || null,
+      ratings: insertBusiness.ratings || null,
     };
     this.localBusinesses.set(id, business);
     return business;
@@ -422,6 +453,8 @@ export class MemStorage implements IStorage {
       ...insertEvent,
       id,
       description: insertEvent.description || null,
+      isActive: insertEvent.isActive ?? true,
+      organizerId: insertEvent.organizerId || null,
       createdAt: new Date(),
     };
     this.neighborhoodEvents.set(id, event);
