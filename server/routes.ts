@@ -12,7 +12,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser(userData);
       res.json(user);
     } catch (error) {
-      res.status(400).json({ error: "Invalid user data" });
+      console.error("User creation error:", error);
+      res.status(400).json({ error: "Invalid user data", details: error.message });
     }
   });
 

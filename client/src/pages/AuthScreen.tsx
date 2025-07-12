@@ -78,11 +78,10 @@ const AuthScreen: React.FC = () => {
     setLoading(true);
     try {
       const userData = {
-        name: userForm.name,
+        fullName: userForm.name,
         phoneNumber: phoneNumber,
-        role: userForm.role,
+        userType: userForm.role,
         isVerified: true,
-        createdAt: new Date().toISOString(),
       };
 
       const response = await fetch('/api/users', {
