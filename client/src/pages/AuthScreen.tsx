@@ -3,15 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { RecaptchaVerifier } from 'firebase/auth';
-import { auth, sendOTP, verifyOTP, createUserProfile } from '@/lib/firebase';
-import { Loader2, Phone, Shield } from 'lucide-react';
+import { Loader2, Phone, User } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 
 const AuthScreen: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState('');
-  const [verificationId, setVerificationId] = useState('');
-  const [showOtpInput, setShowOtpInput] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
   const [userForm, setUserForm] = useState({
@@ -20,18 +16,7 @@ const AuthScreen: React.FC = () => {
   });
   const { toast } = useToast();
 
-  const setupRecaptcha = () => {
-    if (!(window as any).recaptchaVerifier) {
-      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-        callback: () => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber
-        },
-      });
-    }
-  };
-
-  const handleSendOtp = async () => {
+  const handlePhoneLogin = async () => {
     if (!phoneNumber.trim()) {
       toast({
         title: "Error",
@@ -41,32 +26,12 @@ const AuthScreen: React.FC = () => {
       return;
     }
 
-    setLoading(true);
-    try {
-      setupRecaptcha();
-      const confirmationResult = await sendOTP(phoneNumber, (window as any).recaptchaVerifier);
-      setVerificationId(confirmationResult.verificationId);
-      setShowOtpInput(true);
-      toast({
-        title: "OTP Sent",
-        description: "Please check your phone for the verification code",
-      });
-    } catch (error: any) {
+    // Basic phone number validation
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
       toast({
         title: "Error",
-        description: error.message || "Failed to send OTP",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter the OTP",
+        description: "Please enter a valid phone number",
         variant: "destructive",
       });
       return;
@@ -74,23 +39,21 @@ const AuthScreen: React.FC = () => {
 
     setLoading(true);
     try {
-      const result = await verifyOTP(verificationId, otp);
-      if (result.user) {
-        // Check if user profile exists
-        const userProfile = await fetch(`/api/users/${result.user.uid}`);
-        if (!userProfile.ok) {
-          // New user, show registration form
-          setShowUserForm(true);
-        }
+      // Check if user already exists
+      const response = await fetch(`/api/users/phone/${encodeURIComponent(phoneNumber)}`);
+      if (response.ok) {
+        const userData = await response.json();
+        // Store user data in localStorage for temporary session
+        localStorage.setItem('tempUser', JSON.stringify(userData));
+        window.location.reload(); // Trigger auth context to recognize user
+      } else {
+        // New user, show registration form
+        setShowUserForm(true);
       }
-      toast({
-        title: "Success",
-        description: "Phone number verified successfully",
-      });
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to verify OTP",
+        description: error.message || "Failed to verify phone number",
         variant: "destructive",
       });
     } finally {
@@ -110,18 +73,31 @@ const AuthScreen: React.FC = () => {
 
     setLoading(true);
     try {
-      const user = auth.currentUser;
-      if (user) {
-        await createUserProfile(user.uid, {
-          ...userForm,
-          phoneNumber: phoneNumber,
-          isVerified: true,
-          createdAt: new Date(),
-        });
+      const userData = {
+        name: userForm.name,
+        phoneNumber: phoneNumber,
+        role: userForm.role,
+        isVerified: true,
+        createdAt: new Date().toISOString(),
+      };
+
+      const response = await apiRequest({
+        url: '/api/users',
+        method: 'POST',
+        body: userData,
+      });
+
+      if (response.ok) {
+        const newUser = await response.json();
+        // Store user data in localStorage for temporary session
+        localStorage.setItem('tempUser', JSON.stringify(newUser));
         toast({
           title: "Success",
           description: "Profile created successfully",
         });
+        window.location.reload(); // Trigger auth context to recognize user
+      } else {
+        throw new Error('Failed to create profile');
       }
     } catch (error: any) {
       toast({
@@ -200,89 +176,43 @@ const AuthScreen: React.FC = () => {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-center flex items-center justify-center gap-2">
-            {showOtpInput ? (
-              <>
-                <Shield className="h-5 w-5" />
-                Verify OTP
-              </>
-            ) : (
-              <>
-                <Phone className="h-5 w-5" />
-                Login with Phone
-              </>
-            )}
+            <Phone className="h-5 w-5" />
+            Login with Phone
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!showOtpInput ? (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                <Input
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                />
-              </div>
-              <Button 
-                onClick={handleSendOtp}
-                disabled={loading}
-                className="w-full bg-rent-accent text-white hover:bg-blue-700"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending OTP...
-                  </>
-                ) : (
-                  'Send OTP'
-                )}
-              </Button>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Enter OTP</label>
-                <Input
-                  type="text"
-                  placeholder="Enter 6-digit OTP"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  maxLength={6}
-                />
-              </div>
-              <Button 
-                onClick={handleVerifyOtp}
-                disabled={loading}
-                className="w-full bg-rent-accent text-white hover:bg-blue-700"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  'Verify OTP'
-                )}
-              </Button>
-              <Button 
-                onClick={() => setShowOtpInput(false)}
-                variant="outline"
-                className="w-full"
-              >
-                Change Phone Number
-              </Button>
-            </>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+            <Input
+              type="tel"
+              placeholder="+91 98765 43210"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              For testing: OTP verification is temporarily disabled
+            </p>
+          </div>
+          <Button 
+            onClick={handlePhoneLogin}
+            disabled={loading}
+            className="w-full bg-rent-accent text-white hover:bg-blue-700"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Logging in...
+              </>
+            ) : (
+              'Continue with Phone'
+            )}
+          </Button>
         </CardContent>
       </Card>
       
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">By continuing, you agree to our Terms & Privacy Policy</p>
       </div>
-      
-      <div id="recaptcha-container"></div>
     </div>
   );
 };

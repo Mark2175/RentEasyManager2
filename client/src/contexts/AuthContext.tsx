@@ -1,9 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth, getUserProfile } from '@/lib/firebase';
 
 interface AuthContextType {
-  user: User | null;
+  user: any;
   userProfile: any;
   loading: boolean;
   logout: () => Promise<void>;
@@ -20,32 +18,31 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      if (user) {
-        try {
-          const profile = await getUserProfile(user.uid);
-          setUserProfile(profile);
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-        }
-      } else {
-        setUserProfile(null);
+    // Check for temporary user in localStorage
+    const tempUser = localStorage.getItem('tempUser');
+    if (tempUser) {
+      try {
+        const userData = JSON.parse(tempUser);
+        setUser(userData);
+        setUserProfile(userData);
+      } catch (error) {
+        console.error('Error parsing temp user:', error);
+        localStorage.removeItem('tempUser');
       }
-      setLoading(false);
-    });
-
-    return unsubscribe;
+    }
+    setLoading(false);
   }, []);
 
   const logout = async () => {
     try {
-      await signOut(auth);
+      localStorage.removeItem('tempUser');
+      setUser(null);
+      setUserProfile(null);
     } catch (error) {
       console.error('Error logging out:', error);
     }
