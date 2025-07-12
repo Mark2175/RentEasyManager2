@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Search, SlidersHorizontal, Heart } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Search, SlidersHorizontal, Heart, ArrowUpDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PropertyCard from '@/components/PropertyCard';
 import { useUser } from '@/contexts/UserContext';
 import { useQuery } from '@tanstack/react-query';
@@ -10,8 +11,9 @@ import { useQuery } from '@tanstack/react-query';
 const PropertiesScreen: React.FC = () => {
   const { setSelectedProperty, setShowPropertyModal, searchFilters, setSearchFilters, wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useUser();
   const [selectedType, setSelectedType] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
 
-  const { data: properties, isLoading } = useQuery({
+  const { data: allProperties, isLoading } = useQuery({
     queryKey: ['/api/properties', searchFilters],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -25,6 +27,29 @@ const PropertiesScreen: React.FC = () => {
       return response.json();
     },
   });
+
+  const sortedProperties = useMemo(() => {
+    if (!allProperties) return [];
+    
+    const sorted = [...allProperties].sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.createdAt || b.updatedAt).getTime() - new Date(a.createdAt || a.updatedAt).getTime();
+        case 'oldest':
+          return new Date(a.createdAt || a.updatedAt).getTime() - new Date(b.createdAt || b.updatedAt).getTime();
+        case 'price-low':
+          return parseInt(a.rent) - parseInt(b.rent);
+        case 'price-high':
+          return parseInt(b.rent) - parseInt(a.rent);
+        default:
+          return 0;
+      }
+    });
+    
+    return sorted;
+  }, [allProperties, sortBy]);
+
+  const properties = sortedProperties;
 
   const handleViewProperty = (property: any) => {
     setSelectedProperty(property);
@@ -177,6 +202,25 @@ const PropertiesScreen: React.FC = () => {
                 {type}
               </Button>
             ))}
+          </div>
+          
+          {/* Sorting Options */}
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">
+              {properties?.length || 0} properties found
+            </span>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px] bg-white">
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">🟢 Newest First</SelectItem>
+                <SelectItem value="oldest">⚪ Oldest First</SelectItem>
+                <SelectItem value="price-low">💰 Price: Low to High</SelectItem>
+                <SelectItem value="price-high">💎 Price: High to Low</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

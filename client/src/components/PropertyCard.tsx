@@ -27,6 +27,8 @@ interface PropertyCardProps {
     brokerName?: string;
     brokerageFee?: number;
     description?: string;
+    createdAt?: string;
+    updatedAt?: string;
   };
   onViewDetails: (property: any) => void;
   onVirtualTour?: (property: any) => void;
@@ -42,6 +44,34 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
       maximumFractionDigits: 0,
     }).format(rent);
   };
+
+  const getFreshnessBadge = () => {
+    if (!property.createdAt && !property.updatedAt) return null;
+    
+    const now = new Date();
+    const createdAt = new Date(property.createdAt || '');
+    const updatedAt = new Date(property.updatedAt || '');
+    const mostRecentDate = updatedAt > createdAt ? updatedAt : createdAt;
+    
+    const timeDiff = now.getTime() - mostRecentDate.getTime();
+    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hoursDiff = Math.floor(timeDiff / (1000 * 60 * 60));
+    
+    if (daysDiff === 0 && hoursDiff < 24) {
+      if (hoursDiff < 1) return { text: "Just Listed", color: "bg-green-500 text-white", isNew: true };
+      if (hoursDiff < 6) return { text: "Listed Today", color: "bg-green-500 text-white", isNew: true };
+      return { text: "Listed Today", color: "bg-green-400 text-white", isNew: true };
+    }
+    
+    if (daysDiff === 1) return { text: "Listed Yesterday", color: "bg-blue-500 text-white", isNew: true };
+    if (daysDiff <= 3) return { text: `${daysDiff} days ago`, color: "bg-blue-400 text-white", isNew: true };
+    if (daysDiff <= 7) return { text: `${daysDiff} days ago`, color: "bg-orange-400 text-white", isNew: false };
+    if (daysDiff <= 30) return { text: `${daysDiff} days ago`, color: "bg-gray-400 text-white", isNew: false };
+    
+    return null;
+  };
+
+  const freshnessBadge = getFreshnessBadge();
 
   return (
     <TooltipProvider>
@@ -67,6 +97,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
           </Button>
           
           <div className="absolute top-4 right-4 flex flex-col gap-2">
+            {freshnessBadge && (
+              <Badge className={`${freshnessBadge.color} font-medium ${freshnessBadge.isNew ? 'animate-pulse' : ''}`}>
+                {freshnessBadge.text}
+              </Badge>
+            )}
             <Badge variant={property.isAvailable ? "default" : "secondary"} className="bg-green-100 text-green-800">
               {property.isAvailable ? "Available" : "Occupied"}
             </Badge>
@@ -132,7 +167,14 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
         <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold text-gray-800">{property.title}</h3>
-          <span className="text-lg font-bold text-rent-accent">{formatRent(property.rent)}/month</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-rent-accent">{formatRent(property.rent)}/month</span>
+            {freshnessBadge && freshnessBadge.isNew && (
+              <Badge className="bg-red-500 text-white text-xs px-2 py-1 animate-pulse">
+                NEW
+              </Badge>
+            )}
+          </div>
         </div>
         
         <p className="text-gray-600 text-sm mb-2">
