@@ -1,8 +1,9 @@
-import React from 'react';
-import { Search, Camera, Users, Wrench, Bell } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Camera, Users, Wrench, Bell, X, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import PropertyCard from '@/components/PropertyCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUser } from '@/contexts/UserContext';
@@ -11,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 const HomeScreen: React.FC = () => {
   const { userProfile } = useAuth();
   const { setSelectedProperty, setShowPropertyModal, wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useUser();
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ['/api/properties'],
@@ -20,6 +22,50 @@ const HomeScreen: React.FC = () => {
       return response.json();
     },
   });
+
+  // Mock user ID for notifications (in real app, this would come from auth context)
+  const mockUserId = 8;
+
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['/api/notifications', mockUserId],
+    queryFn: async () => {
+      const response = await fetch(`/api/notifications/${mockUserId}`);
+      if (!response.ok) throw new Error('Failed to fetch notifications');
+      return response.json();
+    },
+  });
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['/api/notifications', mockUserId, 'unread-count'],
+    queryFn: async () => {
+      const response = await fetch(`/api/notifications/${mockUserId}/unread-count`);
+      if (!response.ok) throw new Error('Failed to fetch unread count');
+      const data = await response.json();
+      return data.count;
+    },
+  });
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'property': return '🏠';
+      case 'booking': return '📋';
+      case 'service': return '🛠️';
+      default: return '📢';
+    }
+  };
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - new Date(date).getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    return `${Math.floor(diffInHours / 24)}d ago`;
+  };
 
   const handleViewProperty = (property: any) => {
     setSelectedProperty(property);
@@ -150,10 +196,93 @@ const HomeScreen: React.FC = () => {
             <p className="text-gray-600 text-sm">Find your perfect home in Bangalore</p>
           </div>
           <div className="relative">
-            <Bell className="h-6 w-6 text-rent-accent" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              3
-            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="p-1 h-auto"
+              onClick={toggleNotifications}
+            >
+              <Bell className="h-6 w-6 text-rent-accent" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </Button>
+            
+            {/* Notifications Dropdown */}
+            {showNotifications && (
+              <div className="absolute top-10 right-0 w-80 bg-white rounded-lg shadow-lg border z-50 max-h-96 overflow-y-auto">
+                <div className="p-4 border-b flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-800">Notifications</h3>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="p-1 h-auto"
+                    onClick={() => setShowNotifications(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500">
+                      <Bell className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                      <p>No notifications yet</p>
+                    </div>
+                  ) : (
+                    notifications.map((notification: any) => (
+                      <div 
+                        key={notification.id} 
+                        className={`p-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer ${
+                          !notification.isRead ? 'bg-blue-50' : ''
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="text-lg">
+                            {getNotificationIcon(notification.type)}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-medium text-sm text-gray-900">
+                                {notification.title}
+                              </p>
+                              {!notification.isRead && (
+                                <Badge className="bg-blue-500 text-white text-xs">New</Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">
+                              {notification.message}
+                            </p>
+                            <div className="flex items-center gap-1 text-xs text-gray-400">
+                              <Clock className="h-3 w-3" />
+                              {formatTimeAgo(notification.createdAt)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                
+                {notifications.length > 0 && (
+                  <div className="p-3 border-t">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="w-full text-blue-600"
+                      onClick={() => {
+                        // Mark all as read functionality
+                        setShowNotifications(false);
+                      }}
+                    >
+                      Mark all as read
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         

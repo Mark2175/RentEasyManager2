@@ -107,6 +107,17 @@ export const neighborhoodEvents = pgTable("neighborhood_events", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull(), // 'property', 'booking', 'service', 'system'
+  isRead: boolean("is_read").default(false),
+  relatedId: integer("related_id"), // ID of related property, booking, etc.
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -149,6 +160,11 @@ export const insertNeighborhoodEventSchema = createInsertSchema(neighborhoodEven
   createdAt: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -166,3 +182,5 @@ export type LocalBusiness = typeof localBusinesses.$inferSelect;
 export type InsertLocalBusiness = z.infer<typeof insertLocalBusinessSchema>;
 export type NeighborhoodEvent = typeof neighborhoodEvents.$inferSelect;
 export type InsertNeighborhoodEvent = z.infer<typeof insertNeighborhoodEventSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;

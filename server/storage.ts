@@ -1,8 +1,9 @@
 import { 
-  users, properties, bookings, payments, referrals, services, localBusinesses, neighborhoodEvents,
+  users, properties, bookings, payments, referrals, services, localBusinesses, neighborhoodEvents, notifications,
   type User, type InsertUser, type Property, type InsertProperty, type Booking, type InsertBooking,
   type Payment, type InsertPayment, type Referral, type InsertReferral, type Service, type InsertService,
-  type LocalBusiness, type InsertLocalBusiness, type NeighborhoodEvent, type InsertNeighborhoodEvent
+  type LocalBusiness, type InsertLocalBusiness, type NeighborhoodEvent, type InsertNeighborhoodEvent,
+  type Notification, type InsertNotification
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, sql } from "drizzle-orm";
@@ -49,6 +50,13 @@ export interface IStorage {
   // Neighborhood event operations
   getNeighborhoodEvents(area?: string): Promise<NeighborhoodEvent[]>;
   createNeighborhoodEvent(event: InsertNeighborhoodEvent): Promise<NeighborhoodEvent>;
+
+  // Notification operations
+  getNotifications(userId: number): Promise<Notification[]>;
+  getUnreadNotificationCount(userId: number): Promise<number>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(id: number): Promise<void>;
+  markAllNotificationsAsRead(userId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -333,6 +341,46 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return event;
+  }
+
+  async getNotifications(userId: number): Promise<Notification[]> {
+    const notificationList = await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(sql`${notifications.createdAt} DESC`)
+      .limit(50);
+    return notificationList;
+  }
+
+  async getUnreadNotificationCount(userId: number): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(notifications)
+      .where(sql`${notifications.userId} = ${userId} AND ${notifications.isRead} = false`);
+    return result[0]?.count || 0;
+  }
+
+  async createNotification(insertNotification: InsertNotification): Promise<Notification> {
+    const [notification] = await db
+      .insert(notifications)
+      .values(insertNotification)
+      .returning();
+    return notification;
+  }
+
+  async markNotificationAsRead(id: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, id));
+  }
+
+  async markAllNotificationsAsRead(userId: number): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.userId, userId));
   }
 }
 
@@ -758,6 +806,65 @@ export class MemStorage implements IStorage {
     };
     this.neighborhoodEvents.set(id, event);
     return event;
+  }
+
+  async getNotifications(userId: number): Promise<Notification[]> {
+    // Return sample notifications for now
+    const sampleNotifications: Notification[] = [
+      {
+        id: 1,
+        userId,
+        title: "New Property Available",
+        message: "A new 2BHK apartment is now available in your preferred area - HSR Layout",
+        type: "property",
+        isRead: false,
+        relatedId: 7,
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      },
+      {
+        id: 2,
+        userId,
+        title: "Booking Request Update",
+        message: "Your booking request for RE628373001 has been approved by the landlord",
+        type: "booking",
+        isRead: false,
+        relatedId: 1,
+        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+      },
+      {
+        id: 3,
+        userId,
+        title: "Free Service Available",
+        message: "Your complimentary moving service is now scheduled for tomorrow at 10 AM",
+        type: "service",
+        isRead: true,
+        relatedId: null,
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+      },
+    ];
+    return sampleNotifications;
+  }
+
+  async getUnreadNotificationCount(userId: number): Promise<number> {
+    const notifications = await this.getNotifications(userId);
+    return notifications.filter(n => !n.isRead).length;
+  }
+
+  async createNotification(insertNotification: InsertNotification): Promise<Notification> {
+    const notification: Notification = {
+      ...insertNotification,
+      id: Date.now(),
+      createdAt: new Date(),
+    };
+    return notification;
+  }
+
+  async markNotificationAsRead(id: number): Promise<void> {
+    // Mock implementation
+  }
+
+  async markAllNotificationsAsRead(userId: number): Promise<void> {
+    // Mock implementation
   }
 }
 
