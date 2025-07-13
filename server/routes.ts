@@ -182,6 +182,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create payment intent for booking
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const { bookingId, amount, paymentType } = req.body;
+      
+      // Create payment record
+      const payment = await storage.createPayment({
+        userId: req.user?.id || 1,
+        bookingId: bookingId,
+        amount: amount,
+        paymentType: paymentType || 'rent',
+        status: 'pending',
+        paymentMethod: 'pending',
+        transactionId: `TXN_${Date.now()}`,
+        paidAt: new Date(),
+      });
+
+      res.json({
+        paymentId: payment.id,
+        clientSecret: `pi_${payment.id}_secret_${Math.random().toString(36).substr(2, 9)}`,
+        amount: amount,
+      });
+    } catch (error) {
+      console.error('Payment intent creation failed:', error);
+      res.status(500).json({ error: "Failed to create payment intent" });
+    }
+  });
+
+  // Complete payment
+  app.post("/api/complete-payment", async (req, res) => {
+    try {
+      const { paymentId, paymentMethod } = req.body;
+      
+      // Update payment status
+      const payment = await storage.updatePayment(paymentId, {
+        status: 'completed',
+        paymentMethod: paymentMethod,
+        paidAt: new Date(),
+      });
+
+      if (payment) {
+        res.json({ success: true, payment });
+      } else {
+        res.status(404).json({ error: "Payment not found" });
+      }
+    } catch (error) {
+      console.error('Payment completion failed:', error);
+      res.status(500).json({ error: "Failed to complete payment" });
+    }
+  });
+
   // Notification routes
   app.get("/api/notifications/:userId", async (req, res) => {
     try {

@@ -19,6 +19,8 @@ import PaymentHistoryScreen from "@/pages/PaymentHistoryScreen";
 import NeighborhoodEventsScreen from "@/pages/NeighborhoodEventsScreen";
 import SupportScreen from "@/pages/SupportScreen";
 import SettingsScreen from "@/pages/SettingsScreen";
+import BookingFlowScreen from "@/pages/BookingFlowScreen";
+import PaymentScreen from "@/pages/PaymentScreen";
 import BottomNavigation from "@/components/BottomNavigation";
 import PropertyDetailModal from "@/components/PropertyDetailModal";
 import { useUser } from "@/contexts/UserContext";
@@ -33,7 +35,7 @@ function AppContent() {
       case 'home':
         return <HomeScreen onNavigate={setActiveTab} />;
       case 'properties':
-        return <PropertiesScreen />;
+        return <PropertiesScreen onNavigate={setActiveTab} />;
       case 'services':
         return <ServicesScreen onNavigate={setActiveTab} />;
       case 'fd-offer':
@@ -56,6 +58,10 @@ function AppContent() {
         return <SupportScreen onNavigate={setActiveTab} />;
       case 'settings':
         return <SettingsScreen onNavigate={setActiveTab} />;
+      case 'booking-flow':
+        return <BookingFlowScreen onNavigate={setActiveTab} />;
+      case 'payment':
+        return <PaymentScreen onNavigate={setActiveTab} />;
       default:
         return <HomeScreen onNavigate={setActiveTab} />;
     }

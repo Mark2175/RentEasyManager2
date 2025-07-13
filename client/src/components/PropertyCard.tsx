@@ -33,10 +33,11 @@ interface PropertyCardProps {
   onViewDetails: (property: any) => void;
   onVirtualTour?: (property: any) => void;
   onWishlistToggle: (property: any) => void;
+  onBookNow?: (property: any) => void;
   isInWishlist: boolean;
 }
 
-const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, onVirtualTour, onWishlistToggle, isInWishlist }) => {
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, onVirtualTour, onWishlistToggle, onBookNow, isInWishlist }) => {
   const formatRent = (rent: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -219,12 +220,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
         
         {/* Action Buttons - Always Visible & Prominent */}
         <div className="bg-rent-accent/5 -mx-4 -mb-4 p-4 border-t-2 border-rent-accent/20">
-          <div className="flex gap-3 justify-center">
+          <div className="flex gap-2 justify-center">
             {property.hasVirtualTour && (
               <Button 
                 size="default" 
                 variant="outline" 
-                className="bg-yellow-50 text-yellow-700 border-yellow-300 hover:bg-yellow-100 font-semibold px-4 py-2 shadow-sm"
+                className="bg-yellow-50 text-yellow-700 border-yellow-300 hover:bg-yellow-100 font-semibold px-3 py-2 shadow-sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   onVirtualTour?.(property);
@@ -236,7 +237,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
             )}
             <Button 
               size="default" 
-              className="bg-blue-600 text-white hover:bg-blue-700 font-semibold px-8 py-2 shadow-md transform hover:scale-105 transition-all duration-200 border-0"
+              className="bg-blue-600 text-white hover:bg-blue-700 font-semibold px-6 py-2 shadow-md transform hover:scale-105 transition-all duration-200 border-0"
               onClick={(e) => {
                 e.stopPropagation();
                 onViewDetails(property);
@@ -244,6 +245,18 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
             >
               View Details
             </Button>
+            {property.isAvailable && (
+              <Button 
+                size="default" 
+                className="bg-rent-primary text-white hover:bg-rent-primary/90 font-semibold px-4 py-2 shadow-md transform hover:scale-105 transition-all duration-200 border-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBookNow?.(property);
+                }}
+              >
+                Book Now
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>

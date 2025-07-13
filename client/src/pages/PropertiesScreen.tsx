@@ -8,7 +8,11 @@ import PropertyCard from '@/components/PropertyCard';
 import { useUser } from '@/contexts/UserContext';
 import { useQuery } from '@tanstack/react-query';
 
-const PropertiesScreen: React.FC = () => {
+interface PropertiesScreenProps {
+  onNavigate?: (screen: string) => void;
+}
+
+const PropertiesScreen: React.FC<PropertiesScreenProps> = ({ onNavigate }) => {
   const { setSelectedProperty, setShowPropertyModal, searchFilters, setSearchFilters, wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useUser();
   const [selectedType, setSelectedType] = useState('');
   const [sortBy, setSortBy] = useState('newest');
@@ -242,6 +246,10 @@ const PropertiesScreen: React.FC = () => {
                 onViewDetails={handleViewProperty}
                 onVirtualTour={handleVirtualTour}
                 onWishlistToggle={handleWishlistToggle}
+                onBookNow={(property) => {
+                  setSelectedProperty(property);
+                  onNavigate && onNavigate('booking-flow');
+                }}
                 isInWishlist={isInWishlist(property.id)}
               />
             ))}

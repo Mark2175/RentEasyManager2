@@ -146,10 +146,38 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
     }
   };
 
+  const handleReferFriends = () => {
+    const referralCode = `RENT${userProfile?.id || '2024'}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+    const referralMessage = `🏠 Join RentEasy Solutions with my referral code: ${referralCode}
+
+💰 Pay brokerage once, get FREE services:
+• Moving & Packing services
+• Property maintenance  
+• 24/7 support
+• Legal documentation
+
+🎉 You'll get ₹500 cashback on your first booking!
+📱 Download: ${window.location.origin}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'RentEasy Solutions - Referral',
+        text: referralMessage,
+        url: window.location.origin
+      });
+    } else {
+      navigator.clipboard.writeText(referralMessage).then(() => {
+        alert(`Referral code ${referralCode} copied to clipboard! Share it with your friends.`);
+      }).catch(() => {
+        alert(`Your referral code: ${referralCode}\n\nShare this message:\n${referralMessage}`);
+      });
+    }
+  };
+
   const quickActions = [
     { icon: Search, label: 'Search', color: 'bg-rent-blue', action: 'properties' },
     { icon: DollarSign, label: 'Pricing', color: 'bg-rent-blue', action: 'pricing' },
-    { icon: Users, label: 'Refer Friends', color: 'bg-rent-blue' },
+    { icon: Users, label: 'Refer Friends', color: 'bg-rent-blue', action: 'refer' },
     { icon: Wrench, label: 'Services', color: 'bg-rent-blue', action: 'services' },
   ];
 
@@ -324,7 +352,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                 key={index} 
                 className="text-center cursor-pointer"
                 onClick={() => {
-                  if (action && onNavigate) {
+                  if (action === 'refer') {
+                    handleReferFriends();
+                  } else if (action && onNavigate) {
                     onNavigate(action);
                   }
                 }}
@@ -363,6 +393,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                 onViewDetails={handleViewProperty}
                 onVirtualTour={handleVirtualTour}
                 onWishlistToggle={handleWishlistToggle}
+                onBookNow={(property) => {
+                  setSelectedProperty(property);
+                  onNavigate && onNavigate('booking-flow');
+                }}
                 isInWishlist={isInWishlist(property.id)}
               />
             ))

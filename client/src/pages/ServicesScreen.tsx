@@ -79,7 +79,27 @@ Get up to 30% discounts on local businesses too!`;
   };
 
   const handleBusinessClick = (business: any) => {
-    alert(`Redirecting to ${business.name} in ${business.area}. Get ${business.discount} discount!`);
+    const referralCode = `RENT${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    const discountMessage = `🎉 Get ${business.discount} discount at ${business.name}!
+
+📍 Location: ${business.area}
+🎟️ Referral Code: ${referralCode}
+✨ Valid for 30 days
+
+Show this code at ${business.name} to get your discount!`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: `${business.discount} Discount at ${business.name}`,
+        text: discountMessage,
+      });
+    } else {
+      navigator.clipboard.writeText(discountMessage).then(() => {
+        alert(`Referral code ${referralCode} copied!\n\nShow this code at ${business.name} to get ${business.discount} discount.`);
+      }).catch(() => {
+        alert(`Your referral code: ${referralCode}\n\n${discountMessage}`);
+      });
+    }
   };
 
   return (
