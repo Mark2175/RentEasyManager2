@@ -11,6 +11,7 @@ Database setup: PostgreSQL integration completed successfully (July 2025).
 UI/UX Requirements: View Details buttons should be visible at all times on property cards.
 Business USP: Core value proposition - "Pay brokerage, get services free" - prominently displayed across the app.
 Pricing Plans: Added comprehensive pricing page with tenant and landlord plans, broker commission structure, and FAQ section (July 2025).
+Document Verification: Mandatory profile completion with document upload (max 2MB per file) before booking properties - includes full name, email, complete address, company name, and verification documents (Aadhaar, PAN, address proof, income proof) (July 2025).
 
 ## System Architecture
 
@@ -36,6 +37,8 @@ Pricing Plans: Added comprehensive pricing page with tenant and landlord plans, 
 - **Migrations**: Drizzle Kit for database migrations
 - **Type Safety**: Full TypeScript integration with Drizzle-Zod validation
 - **Sample Data**: Populated with realistic test data for development
+- **Document Storage**: File upload system with multer for document verification (max 2MB per file)
+- **User Verification**: Enhanced user schema with document fields and verification status tracking
 
 ## Key Components
 
@@ -61,6 +64,9 @@ Pricing Plans: Added comprehensive pricing page with tenant and landlord plans, 
 - **Status Tracking**: Pending, approved, rejected, active, completed states
 - **Payments**: Integrated payment processing for rent and deposits
 - **Agreements**: Digital lease agreement generation
+- **Profile Verification**: Mandatory profile completion and document verification before booking
+- **Document Requirements**: Full name, email, complete address, company name, and four verification documents (Aadhaar, PAN, address proof, income proof)
+- **Verification Flow**: Automatic profile eligibility check with verification modal for incomplete profiles
 
 ### Service Integration
 - **Moving Services**: Integrated mover and packer services (FREE with brokerage)

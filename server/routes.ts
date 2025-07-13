@@ -1,10 +1,86 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { insertPropertySchema, insertUserSchema, insertBookingSchema } from "@shared/schema";
 import { z } from "zod";
 
+// Setup multer for file uploads
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  }),
+  limits: {
+    fileSize: 2 * 1024 * 1024, // 2MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept images and PDFs only
+    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image and PDF files are allowed'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve uploaded files
+  app.use('/uploads', express.static(uploadsDir));
+  
+  // Document upload endpoint
+  app.post("/api/upload-documents", upload.fields([
+    { name: 'aadhaarDocument', maxCount: 1 },
+    { name: 'panDocument', maxCount: 1 },
+    { name: 'addressProof', maxCount: 1 },
+    { name: 'incomeProof', maxCount: 1 }
+  ]), async (req, res) => {
+    try {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      const userId = parseInt(req.body.userId);
+      
+      if (!userId) {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+      
+      const documentPaths: any = {};
+      
+      // Process uploaded files
+      Object.keys(files).forEach(fieldname => {
+        if (files[fieldname] && files[fieldname][0]) {
+          documentPaths[fieldname] = `/uploads/${files[fieldname][0].filename}`;
+        }
+      });
+      
+      // Update user with document paths
+      const updatedUser = await storage.updateUser(userId, {
+        ...documentPaths,
+        documentsVerified: false // Will be verified by admin
+      });
+      
+      res.json({ 
+        message: "Documents uploaded successfully", 
+        documentPaths,
+        user: updatedUser 
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // User routes
   app.post("/api/users", async (req, res) => {
     try {
@@ -40,6 +116,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(user);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+
+  // Update user profile
+  app.patch("/api/users/:id", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const updatedUser = await storage.updateUser(userId, req.body);
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json(updatedUser);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
+  // Check if user profile is complete for booking
+  app.get("/api/users/:id/booking-eligibility", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      const isEligible = !!(
+        user.fullName &&
+        user.email &&
+        user.completeAddress &&
+        user.company &&
+        user.phoneNumber &&
+        user.aadhaarDocument &&
+        user.panDocument &&
+        user.addressProof &&
+        user.incomeProof
+      );
+      
+      const missingFields = [];
+      if (!user.fullName) missingFields.push("Full Name");
+      if (!user.email) missingFields.push("Email");
+      if (!user.completeAddress) missingFields.push("Complete Address");
+      if (!user.company) missingFields.push("Company");
+      if (!user.aadhaarDocument) missingFields.push("Aadhaar Document");
+      if (!user.panDocument) missingFields.push("PAN Document");
+      if (!user.addressProof) missingFields.push("Address Proof");
+      if (!user.incomeProof) missingFields.push("Income Proof");
+      
+      res.json({
+        isEligible,
+        missingFields,
+        documentsVerified: user.documentsVerified || false
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to check booking eligibility" });
     }
   });
 

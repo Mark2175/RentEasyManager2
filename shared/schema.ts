@@ -10,10 +10,18 @@ export const users = pgTable("users", {
   userType: text("user_type").notNull(), // 'tenant', 'landlord', 'broker', 'admin'
   isVerified: boolean("is_verified").default(false),
   address: text("address"),
+  completeAddress: text("complete_address"), // Complete address as per govt documents
   aadhaarNumber: text("aadhaar_number"),
   panNumber: text("pan_number"),
   bankAccount: text("bank_account"),
+  company: text("company"), // Company name (mandatory for booking)
   firebaseUid: text("firebase_uid"),
+  // Document verification fields
+  aadhaarDocument: text("aadhaar_document"), // File path/URL
+  panDocument: text("pan_document"), // File path/URL
+  addressProof: text("address_proof"), // File path/URL
+  incomeProof: text("income_proof"), // File path/URL
+  documentsVerified: boolean("documents_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -155,6 +163,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  // Make email, completeAddress, and company required for booking
+  email: z.string().email("Valid email is required"),
+  completeAddress: z.string().min(10, "Complete address as per government documents is required"),
+  company: z.string().min(2, "Company name is required"),
 });
 
 export const insertPropertySchema = createInsertSchema(properties).omit({

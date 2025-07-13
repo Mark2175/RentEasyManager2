@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PropertyCard from '@/components/PropertyCard';
+import ProfileVerificationModal from '@/components/ProfileVerificationModal';
 import { useUser } from '@/contexts/UserContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 
 interface PropertiesScreenProps {
@@ -13,9 +15,12 @@ interface PropertiesScreenProps {
 }
 
 const PropertiesScreen: React.FC<PropertiesScreenProps> = ({ onNavigate }) => {
+  const { userProfile } = useAuth();
   const { setSelectedProperty, setShowPropertyModal, searchFilters, setSearchFilters, wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useUser();
   const [selectedType, setSelectedType] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [pendingBookingProperty, setPendingBookingProperty] = useState<any>(null);
 
   const { data: allProperties, isLoading } = useQuery({
     queryKey: ['/api/properties', searchFilters],
@@ -399,9 +404,33 @@ const PropertiesScreen: React.FC<PropertiesScreenProps> = ({ onNavigate }) => {
                 onViewDetails={handleViewProperty}
                 onVirtualTour={handleVirtualTour}
                 onWishlistToggle={handleWishlistToggle}
-                onBookNow={(property) => {
-                  setSelectedProperty(property);
-                  onNavigate && onNavigate('booking-flow');
+                onBookNow={async (property) => {
+                  const userId = userProfile?.id || 8; // Use authenticated user ID or fallback
+                  
+                  try {
+                    // Check if user profile is complete for booking
+                    const response = await fetch(`/api/users/${userId}/booking-eligibility`);
+                    const eligibilityData = await response.json();
+                    
+                    if (!eligibilityData.isEligible) {
+                      // Show verification modal if profile is incomplete
+                      setPendingBookingProperty(property);
+                      setShowVerificationModal(true);
+                      return;
+                    }
+                    
+                    if (!eligibilityData.documentsVerified) {
+                      alert('Your documents are under verification. You can book properties once verification is complete (usually within 24 hours).');
+                      return;
+                    }
+                    
+                    // Profile is complete and verified, proceed with booking
+                    setSelectedProperty(property);
+                    onNavigate && onNavigate('booking-flow');
+                  } catch (error) {
+                    console.error('Error checking booking eligibility:', error);
+                    alert('Unable to check profile status. Please try again.');
+                  }
                 }}
                 onBookVisit={(property) => handleBookVisit(property)}
                 isInWishlist={isInWishlist(property.id)}
@@ -410,6 +439,23 @@ const PropertiesScreen: React.FC<PropertiesScreenProps> = ({ onNavigate }) => {
           </div>
         )}
       </div>
+      
+      {/* Profile Verification Modal */}
+      <ProfileVerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => {
+          setShowVerificationModal(false);
+          setPendingBookingProperty(null);
+        }}
+        userId={userProfile?.id || 8}
+        onComplete={() => {
+          // After verification is complete, proceed with booking
+          if (pendingBookingProperty) {
+            setSelectedProperty(pendingBookingProperty);
+            onNavigate && onNavigate('booking-flow');
+          }
+        }}
+      />
     </div>
   );
 };
