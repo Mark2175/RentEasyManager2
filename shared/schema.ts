@@ -33,6 +33,8 @@ export const properties = pgTable("properties", {
   sqft: integer("sqft"),
   bedrooms: integer("bedrooms"),
   bathrooms: integer("bathrooms"),
+  floor: text("floor"), // e.g., "2nd Floor", "Ground Floor", "3rd Floor"
+  securityPersonAvailable: boolean("security_person_available").default(false),
   amenities: text("amenities").array(),
   images: text("images").array(),
   isAvailable: boolean("is_available").default(true),

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Bed, Bath, Square, Eye, Heart, User, Building, Info } from 'lucide-react';
+import { MapPin, Bed, Bath, Square, Eye, Heart, User, Building, Info, Shield, Home } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,8 @@ interface PropertyCardProps {
     sqft?: number;
     bedrooms?: number;
     bathrooms?: number;
+    floor?: string;
+    securityPersonAvailable?: boolean;
     images?: string[];
     isAvailable: boolean;
     hasVirtualTour: boolean;
@@ -197,7 +199,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
           <span>{property.area}, {property.city}</span>
         </div>
         
-        <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+        <div className="flex items-center gap-4 text-sm text-gray-500 mb-2">
           {property.bedrooms && (
             <span className="flex items-center">
               <Bed className="h-4 w-4 mr-1" />
@@ -216,6 +218,22 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
               {property.sqft} sq ft
             </span>
           )}
+        </div>
+        
+        {/* Floor and Security Information */}
+        <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+          {property.floor && (
+            <span className="flex items-center">
+              <Home className="h-4 w-4 mr-1" />
+              {property.floor}
+            </span>
+          )}
+          <span className="flex items-center">
+            <Shield className={`h-4 w-4 mr-1 ${property.securityPersonAvailable ? 'text-green-600' : 'text-red-500'}`} />
+            <span className={property.securityPersonAvailable ? 'text-green-600' : 'text-red-500'}>
+              {property.securityPersonAvailable ? 'Security Available' : 'No Security'}
+            </span>
+          </span>
         </div>
         
         {/* Action Buttons - Always Visible & Prominent */}
@@ -248,7 +266,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
             {property.isAvailable && (
               <Button 
                 size="default" 
-                className="bg-rent-primary text-white hover:bg-rent-primary/90 font-semibold px-4 py-2 shadow-md transform hover:scale-105 transition-all duration-200 border-0"
+                className="bg-green-600 text-white hover:bg-green-700 font-semibold px-4 py-2 shadow-md transform hover:scale-105 transition-all duration-200 border-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   onBookNow?.(property);

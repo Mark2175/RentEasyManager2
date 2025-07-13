@@ -8,6 +8,7 @@ import PropertyCard from '@/components/PropertyCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUser } from '@/contexts/UserContext';
 import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 interface HomeScreenProps {
   onNavigate?: (screen: string) => void;
@@ -30,7 +31,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
   // Mock user ID for notifications (in real app, this would come from auth context)
   const mockUserId = 8;
 
-  const { data: notifications = [] } = useQuery({
+  const { data: notifications = [], refetch: refetchNotifications } = useQuery({
     queryKey: ['/api/notifications', mockUserId],
     queryFn: async () => {
       const response = await fetch(`/api/notifications/${mockUserId}`);
@@ -39,7 +40,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
     },
   });
 
-  const { data: unreadCount = 0 } = useQuery({
+  const { data: unreadCount = 0, refetch: refetchUnreadCount } = useQuery({
     queryKey: ['/api/notifications', mockUserId, 'unread-count'],
     queryFn: async () => {
       const response = await fetch(`/api/notifications/${mockUserId}/unread-count`);
@@ -193,6 +194,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
       sqft: 1200,
       bedrooms: 2,
       bathrooms: 2,
+      floor: '3rd Floor',
+      securityPersonAvailable: true,
       isAvailable: true,
       hasVirtualTour: false,
       amenities: ['Parking', 'Gym', 'Pool', 'Security'],
@@ -209,6 +212,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
       sqft: 1500,
       bedrooms: 3,
       bathrooms: 2,
+      floor: '7th Floor',
+      securityPersonAvailable: true,
       isAvailable: true,
       hasVirtualTour: true,
       amenities: ['Parking', 'Gym', 'Pool', 'Security', 'Garden'],
@@ -236,7 +241,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
             >
               <Bell className="h-6 w-6 text-rent-accent" />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {unreadCount}
                 </span>
               )}
@@ -304,9 +309,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                       variant="ghost" 
                       size="sm"
                       className="w-full text-blue-600"
-                      onClick={() => {
-                        // Mark all as read functionality
-                        setShowNotifications(false);
+                      onClick={async () => {
+                        try {
+                          // Mark all notifications as read
+                          await apiRequest("POST", `/api/notifications/${userProfile?.id || 8}/mark-all-read`);
+                          // Refetch both notifications and unread count
+                          refetchNotifications();
+                          refetchUnreadCount();
+                          setShowNotifications(false);
+                        } catch (error) {
+                          console.error('Failed to mark all notifications as read:', error);
+                        }
                       }}
                     >
                       Mark all as read
