@@ -218,7 +218,7 @@ const ProfileVerificationModal: React.FC<ProfileVerificationModalProps> = ({
                 { key: 'aadhaarDocument', label: 'Aadhaar Card *', desc: 'Front and back sides' },
                 { key: 'panDocument', label: 'PAN Card *', desc: 'Clear copy of PAN card' },
                 { key: 'addressProof', label: 'Address Proof *', desc: 'Utility bill, bank statement, etc.' },
-                { key: 'incomeProof', label: 'Income Proof *', desc: 'Salary slip, ITR, or employment letter' }
+                { key: 'incomeProof', label: 'Income Proof *', desc: 'Employment letter from company HR on letterhead, salary slip, or ITR' }
               ].map(({ key, label, desc }) => (
                 <div key={key} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between">
