@@ -167,10 +167,10 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 // Schema for user creation (basic profile)
 export const createUserSchema = insertUserSchema.pick({
-  username: true,
+  fullName: true,
   phoneNumber: true,
-  role: true,
-  isPhoneVerified: true,
+  userType: true,
+  isVerified: true,
 });
 
 // Schema for profile completion (required for booking)
