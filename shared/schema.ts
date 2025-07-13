@@ -163,8 +163,18 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-}).extend({
-  // Make email, completeAddress, and company required for booking
+});
+
+// Schema for user creation (basic profile)
+export const createUserSchema = insertUserSchema.pick({
+  username: true,
+  phoneNumber: true,
+  role: true,
+  isPhoneVerified: true,
+});
+
+// Schema for profile completion (required for booking)
+export const completeProfileSchema = insertUserSchema.extend({
   email: z.string().email("Valid email is required"),
   completeAddress: z.string().min(10, "Complete address as per government documents is required"),
   company: z.string().min(2, "Company name is required"),

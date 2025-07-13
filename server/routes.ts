@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { insertPropertySchema, insertUserSchema, insertBookingSchema } from "@shared/schema";
+import { insertPropertySchema, insertUserSchema, insertBookingSchema, createUserSchema, completeProfileSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Setup multer for file uploads
@@ -84,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
   app.post("/api/users", async (req, res) => {
     try {
-      const userData = insertUserSchema.parse(req.body);
+      const userData = createUserSchema.parse(req.body);
       const user = await storage.createUser(userData);
       res.json(user);
     } catch (error) {
