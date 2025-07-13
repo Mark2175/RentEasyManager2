@@ -147,6 +147,105 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
     }
   };
 
+  const handleBookVisit = (property: any) => {
+    // Create a visit booking modal
+    const visitModal = document.createElement('div');
+    visitModal.innerHTML = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="this.remove()">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" onclick="event.stopPropagation()">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Book Property Visit</h3>
+            <button class="text-gray-400 hover:text-gray-600" onclick="this.closest('.fixed').remove()">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="mb-4">
+            <h4 class="font-medium">${property.title}</h4>
+            <p class="text-sm text-gray-600">${property.area}, ${property.city}</p>
+            <p class="text-sm text-gray-600">Property ID: ${property.propertyId}</p>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Date</label>
+              <input type="date" class="w-full p-2 border rounded-lg" min="${new Date().toISOString().split('T')[0]}" />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Time</label>
+              <select class="w-full p-2 border rounded-lg">
+                <option value="">Select time</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="12:00">12:00 PM</option>
+                <option value="14:00">2:00 PM</option>
+                <option value="15:00">3:00 PM</option>
+                <option value="16:00">4:00 PM</option>
+                <option value="17:00">5:00 PM</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Your Phone Number</label>
+              <input type="tel" class="w-full p-2 border rounded-lg" placeholder="Enter your phone number" />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Additional Notes (Optional)</label>
+              <textarea class="w-full p-2 border rounded-lg" rows="3" placeholder="Any specific requirements or questions?"></textarea>
+            </div>
+          </div>
+          
+          <div class="flex gap-3 mt-6">
+            <button class="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300" onclick="this.closest('.fixed').remove()">
+              Cancel
+            </button>
+            <button class="flex-1 bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700" onclick="handleVisitBooking()">
+              Book Visit
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(visitModal);
+    
+    // Handle visit booking
+    window.handleVisitBooking = () => {
+      const dateInput = visitModal.querySelector('input[type="date"]');
+      const timeSelect = visitModal.querySelector('select');
+      const phoneInput = visitModal.querySelector('input[type="tel"]');
+      const notesTextarea = visitModal.querySelector('textarea');
+      
+      if (!dateInput.value || !timeSelect.value || !phoneInput.value) {
+        alert('Please fill in all required fields');
+        return;
+      }
+      
+      // Show success message
+      visitModal.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="this.remove()">
+          <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 text-center" onclick="event.stopPropagation()">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">Visit Scheduled!</h3>
+            <p class="text-gray-600 mb-4">Your property visit has been scheduled for ${dateInput.value} at ${timeSelect.options[timeSelect.selectedIndex].text}</p>
+            <p class="text-sm text-gray-500 mb-4">Visit ID: VID${Date.now().toString().slice(-6)}</p>
+            <p class="text-sm text-gray-500 mb-6">You will receive a confirmation call on ${phoneInput.value}</p>
+            <button class="bg-orange-600 text-white py-2 px-6 rounded-lg hover:bg-orange-700" onclick="this.closest('.fixed').remove()">
+              Got it!
+            </button>
+          </div>
+        </div>
+      `;
+    };
+  };
+
   const handleReferFriends = () => {
     const referralCode = `RENT${userProfile?.id || '2024'}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
     const referralMessage = `🏠 Join RentEasy Solutions with my referral code: ${referralCode}
@@ -410,6 +509,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                   setSelectedProperty(property);
                   onNavigate && onNavigate('booking-flow');
                 }}
+                onBookVisit={(property) => handleBookVisit(property)}
                 isInWishlist={isInWishlist(property.id)}
               />
             ))
