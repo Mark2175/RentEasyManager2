@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Bed, Bath, Square, Eye, Heart, User, Building, Info, Shield, Home, Calendar, ArrowRightLeft, Check } from 'lucide-react';
+import { MapPin, Bed, Bath, Square, Eye, Heart, User, Building, Info, Shield, Home, Calendar, ArrowRightLeft, Check, Camera } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,13 +35,14 @@ interface PropertyCardProps {
   };
   onViewDetails: (property: any) => void;
   onVirtualTour?: (property: any) => void;
+  onStartVirtualTour?: (propertyId: string) => void;
   onWishlistToggle: (property: any) => void;
   onBookNow?: (property: any) => void;
   onBookVisit?: (property: any) => void;
   isInWishlist: boolean;
 }
 
-const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, onVirtualTour, onWishlistToggle, onBookNow, onBookVisit, isInWishlist }) => {
+const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, onVirtualTour, onWishlistToggle, onBookNow, onBookVisit, onStartVirtualTour, isInWishlist }) => {
   const { addToComparison, removeFromComparison, isInComparison, canAddMore } = useComparison();
   const formatRent = (rent: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -140,7 +141,15 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
               {property.isAvailable ? "Available" : "Occupied"}
             </Badge>
             {property.hasVirtualTour && (
-              <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+              <Badge 
+                variant="outline" 
+                className="bg-yellow-100 text-yellow-800 cursor-pointer hover:bg-yellow-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onStartVirtualTour?.(property.id);
+                }}
+              >
+                <Camera className="h-3 w-3 mr-1" />
                 Virtual Tour
               </Badge>
             )}

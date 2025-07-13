@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Camera, Users, Wrench, Bell, X, Clock, DollarSign } from 'lucide-react';
+import { Search, Camera, Users, Wrench, Bell, X, Clock, DollarSign, MapPin, Brain, Trophy, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -359,6 +359,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
 
   const quickActions = [
     { icon: Search, label: 'Search', color: 'bg-rent-blue', action: 'properties' },
+    { icon: MapPin, label: 'Heatmap', color: 'bg-rent-blue', action: 'heatmap' },
+    { icon: Brain, label: 'AI Insights', color: 'bg-rent-blue', action: 'heatmap' },
+    { icon: Trophy, label: 'Verification', color: 'bg-rent-blue', action: 'verification' },
     { icon: DollarSign, label: 'Pricing', color: 'bg-rent-blue', action: 'pricing' },
     { icon: Users, label: 'Refer Friends', color: 'bg-rent-blue', action: 'refer' },
     { icon: Wrench, label: 'Services', color: 'bg-rent-blue', action: 'services' },
@@ -590,6 +593,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                 onWishlistToggle={handleWishlistToggle}
                 onBookNow={handleBookNow}
                 onBookVisit={(property) => handleBookVisit(property)}
+                onStartVirtualTour={(propertyId) => handleVirtualTour(properties?.find(p => p.id === propertyId) || mockProperties.find(p => p.id === propertyId))}
                 isInWishlist={isInWishlist(property.id)}
               />
             ))

@@ -22,10 +22,13 @@ import SupportScreen from "@/pages/SupportScreen";
 import SettingsScreen from "@/pages/SettingsScreen";
 import BookingFlowScreen from "@/pages/BookingFlowScreen";
 import PaymentScreen from "@/pages/PaymentScreen";
+import HeatmapScreen from "@/pages/HeatmapScreen";
+import VerificationScreen from "@/pages/VerificationScreen";
 import BottomNavigation from "@/components/BottomNavigation";
 import PropertyDetailModal from "@/components/PropertyDetailModal";
 import ComparisonBar from "@/components/ComparisonBar";
 import PropertyComparisonDashboard from "@/components/PropertyComparisonDashboard";
+import VirtualTourIntegration from "@/components/VirtualTourIntegration";
 import { useUser } from "@/contexts/UserContext";
 import { useComparison } from "@/contexts/ComparisonContext";
 
@@ -34,6 +37,8 @@ function AppContent() {
   const { selectedProperty, showPropertyModal, setShowPropertyModal } = useUser();
   const { comparisonProperties, isComparisonOpen, closeComparison, removeFromComparison } = useComparison();
   const [activeTab, setActiveTab] = useState('home');
+  const [showVirtualTour, setShowVirtualTour] = useState(false);
+  const [virtualTourPropertyId, setVirtualTourPropertyId] = useState<string>('');
 
   const renderScreen = () => {
     switch (activeTab) {
@@ -67,6 +72,10 @@ function AppContent() {
         return <BookingFlowScreen onNavigate={setActiveTab} />;
       case 'payment':
         return <PaymentScreen onNavigate={setActiveTab} />;
+      case 'heatmap':
+        return <HeatmapScreen onNavigate={setActiveTab} />;
+      case 'verification':
+        return <VerificationScreen onNavigate={setActiveTab} />;
       default:
         return <HomeScreen onNavigate={setActiveTab} />;
     }
@@ -109,6 +118,21 @@ function AppContent() {
           }}
           onBookProperty={(property) => {
             setSelectedProperty(property);
+            setActiveTab('booking-flow');
+          }}
+        />
+      )}
+      
+      {/* Virtual Tour Modal */}
+      {showVirtualTour && (
+        <VirtualTourIntegration
+          propertyId={virtualTourPropertyId}
+          onClose={() => {
+            setShowVirtualTour(false);
+            setVirtualTourPropertyId('');
+          }}
+          onBookProperty={() => {
+            setShowVirtualTour(false);
             setActiveTab('booking-flow');
           }}
         />
