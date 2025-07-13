@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb, date, time } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -120,6 +120,36 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const availabilitySlots = pgTable("availability_slots", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  userRole: text("user_role").notNull(), // broker, landlord, tenant
+  date: date("date").notNull(),
+  startTime: time("start_time").notNull(),
+  endTime: time("end_time").notNull(),
+  isAvailable: boolean("is_available").default(true),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const propertyVisits = pgTable("property_visits", {
+  id: serial("id").primaryKey(),
+  visitId: text("visit_id").notNull().unique(),
+  propertyId: integer("property_id").references(() => properties.id).notNull(),
+  tenantId: integer("tenant_id").references(() => users.id).notNull(),
+  landlordId: integer("landlord_id").references(() => users.id),
+  brokerId: integer("broker_id").references(() => users.id),
+  scheduledDate: date("scheduled_date").notNull(),
+  scheduledTime: time("scheduled_time").notNull(),
+  status: text("status").notNull().default("scheduled"), // scheduled, confirmed, completed, cancelled, rescheduled
+  tenantPhone: text("tenant_phone").notNull(),
+  notes: text("notes"),
+  confirmationSent: boolean("confirmation_sent").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -167,6 +197,19 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
   createdAt: true,
 });
 
+export const insertAvailabilitySlotSchema = createInsertSchema(availabilitySlots).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPropertyVisitSchema = createInsertSchema(propertyVisits).omit({
+  id: true,
+  visitId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -186,3 +229,7 @@ export type NeighborhoodEvent = typeof neighborhoodEvents.$inferSelect;
 export type InsertNeighborhoodEvent = z.infer<typeof insertNeighborhoodEventSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type AvailabilitySlot = typeof availabilitySlots.$inferSelect;
+export type InsertAvailabilitySlot = z.infer<typeof insertAvailabilitySlotSchema>;
+export type PropertyVisit = typeof propertyVisits.$inferSelect;
+export type InsertPropertyVisit = z.infer<typeof insertPropertyVisitSchema>;

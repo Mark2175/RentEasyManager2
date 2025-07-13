@@ -274,6 +274,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Calendar and availability routes
+  app.get("/api/availability/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { date } = req.query;
+      const slots = await storage.getAvailabilitySlots(userId, date as string);
+      res.json(slots);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/availability", async (req, res) => {
+    try {
+      const slot = await storage.createAvailabilitySlot(req.body);
+      res.json(slot);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Property visit routes
+  app.post("/api/property-visits", async (req, res) => {
+    try {
+      const visit = await storage.createPropertyVisit(req.body);
+      
+      // Create notifications for landlord and broker
+      if (visit.landlordId) {
+        await storage.createNotification({
+          userId: visit.landlordId,
+          title: "New Property Visit Scheduled",
+          message: `A tenant has scheduled a visit on ${visit.scheduledDate} at ${visit.scheduledTime}. Visit ID: ${visit.visitId}`,
+          type: "property",
+          relatedId: visit.propertyId,
+        });
+      }
+      
+      if (visit.brokerId) {
+        await storage.createNotification({
+          userId: visit.brokerId,
+          title: "New Property Visit Scheduled",
+          message: `A tenant has scheduled a visit on ${visit.scheduledDate} at ${visit.scheduledTime}. Visit ID: ${visit.visitId}`,
+          type: "property",
+          relatedId: visit.propertyId,
+        });
+      }
+      
+      res.json(visit);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/property-visits/user/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const visits = await storage.getPropertyVisitsByUser(userId);
+      res.json(visits);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.patch("/api/property-visits/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const visit = await storage.updatePropertyVisit(id, req.body);
+      res.json(visit);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/property-visits/check-conflicts", async (req, res) => {
+    try {
+      const { date, time, landlordId, brokerId } = req.body;
+      const hasConflict = await storage.checkVisitConflicts(date, time, landlordId, brokerId);
+      res.json({ hasConflict });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

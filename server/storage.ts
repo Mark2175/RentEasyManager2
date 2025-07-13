@@ -1,12 +1,14 @@
 import { 
   users, properties, bookings, payments, referrals, services, localBusinesses, neighborhoodEvents, notifications,
+  availabilitySlots, propertyVisits,
   type User, type InsertUser, type Property, type InsertProperty, type Booking, type InsertBooking,
   type Payment, type InsertPayment, type Referral, type InsertReferral, type Service, type InsertService,
   type LocalBusiness, type InsertLocalBusiness, type NeighborhoodEvent, type InsertNeighborhoodEvent,
-  type Notification, type InsertNotification
+  type Notification, type InsertNotification, type AvailabilitySlot, type InsertAvailabilitySlot,
+  type PropertyVisit, type InsertPropertyVisit
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and, or } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -57,6 +59,22 @@ export interface IStorage {
   createNotification(notification: InsertNotification): Promise<Notification>;
   markNotificationAsRead(id: number): Promise<void>;
   markAllNotificationsAsRead(userId: number): Promise<void>;
+
+  // Availability slot operations
+  getAvailabilitySlots(userId: number, date?: string): Promise<AvailabilitySlot[]>;
+  createAvailabilitySlot(slot: InsertAvailabilitySlot): Promise<AvailabilitySlot>;
+  updateAvailabilitySlot(id: number, updates: Partial<AvailabilitySlot>): Promise<AvailabilitySlot | undefined>;
+  deleteAvailabilitySlot(id: number): Promise<void>;
+  getAvailableTimeSlots(userId: number, date: string, userRole: string): Promise<string[]>;
+
+  // Property visit operations
+  getPropertyVisit(id: number): Promise<PropertyVisit | undefined>;
+  getPropertyVisitByVisitId(visitId: string): Promise<PropertyVisit | undefined>;
+  getPropertyVisitsByUser(userId: number): Promise<PropertyVisit[]>;
+  getPropertyVisitsByProperty(propertyId: number): Promise<PropertyVisit[]>;
+  createPropertyVisit(visit: InsertPropertyVisit): Promise<PropertyVisit>;
+  updatePropertyVisit(id: number, updates: Partial<PropertyVisit>): Promise<PropertyVisit | undefined>;
+  checkVisitConflicts(date: string, time: string, landlordId?: number, brokerId?: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -381,6 +399,121 @@ export class DatabaseStorage implements IStorage {
       .update(notifications)
       .set({ isRead: true })
       .where(eq(notifications.userId, userId));
+  }
+
+  // Availability slot operations
+  async getAvailabilitySlots(userId: number, date?: string): Promise<AvailabilitySlot[]> {
+    const query = db.select().from(availabilitySlots).where(eq(availabilitySlots.userId, userId));
+    
+    if (date) {
+      return await query.where(eq(availabilitySlots.date, date));
+    }
+    
+    return await query;
+  }
+
+  async createAvailabilitySlot(insertSlot: InsertAvailabilitySlot): Promise<AvailabilitySlot> {
+    const [slot] = await db
+      .insert(availabilitySlots)
+      .values(insertSlot)
+      .returning();
+    return slot;
+  }
+
+  async updateAvailabilitySlot(id: number, updates: Partial<AvailabilitySlot>): Promise<AvailabilitySlot | undefined> {
+    const [slot] = await db
+      .update(availabilitySlots)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(availabilitySlots.id, id))
+      .returning();
+    return slot || undefined;
+  }
+
+  async deleteAvailabilitySlot(id: number): Promise<void> {
+    await db.delete(availabilitySlots).where(eq(availabilitySlots.id, id));
+  }
+
+  async getAvailableTimeSlots(userId: number, date: string, userRole: string): Promise<string[]> {
+    const slots = await db
+      .select()
+      .from(availabilitySlots)
+      .where(
+        and(
+          eq(availabilitySlots.userId, userId),
+          eq(availabilitySlots.date, date),
+          eq(availabilitySlots.userRole, userRole),
+          eq(availabilitySlots.isAvailable, true)
+        )
+      );
+    
+    return slots.map(slot => `${slot.startTime}-${slot.endTime}`);
+  }
+
+  // Property visit operations
+  async getPropertyVisit(id: number): Promise<PropertyVisit | undefined> {
+    const [visit] = await db.select().from(propertyVisits).where(eq(propertyVisits.id, id));
+    return visit || undefined;
+  }
+
+  async getPropertyVisitByVisitId(visitId: string): Promise<PropertyVisit | undefined> {
+    const [visit] = await db.select().from(propertyVisits).where(eq(propertyVisits.visitId, visitId));
+    return visit || undefined;
+  }
+
+  async getPropertyVisitsByUser(userId: number): Promise<PropertyVisit[]> {
+    return await db
+      .select()
+      .from(propertyVisits)
+      .where(
+        or(
+          eq(propertyVisits.tenantId, userId),
+          eq(propertyVisits.landlordId, userId),
+          eq(propertyVisits.brokerId, userId)
+        )
+      );
+  }
+
+  async getPropertyVisitsByProperty(propertyId: number): Promise<PropertyVisit[]> {
+    return await db.select().from(propertyVisits).where(eq(propertyVisits.propertyId, propertyId));
+  }
+
+  async createPropertyVisit(insertVisit: InsertPropertyVisit): Promise<PropertyVisit> {
+    const visitId = `VID${Date.now().toString().slice(-6)}`;
+    const [visit] = await db
+      .insert(propertyVisits)
+      .values({
+        ...insertVisit,
+        visitId,
+      })
+      .returning();
+    return visit;
+  }
+
+  async updatePropertyVisit(id: number, updates: Partial<PropertyVisit>): Promise<PropertyVisit | undefined> {
+    const [visit] = await db
+      .update(propertyVisits)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(propertyVisits.id, id))
+      .returning();
+    return visit || undefined;
+  }
+
+  async checkVisitConflicts(date: string, time: string, landlordId?: number, brokerId?: number): Promise<boolean> {
+    const conflicts = await db
+      .select()
+      .from(propertyVisits)
+      .where(
+        and(
+          eq(propertyVisits.scheduledDate, date),
+          eq(propertyVisits.scheduledTime, time),
+          or(
+            landlordId ? eq(propertyVisits.landlordId, landlordId) : undefined,
+            brokerId ? eq(propertyVisits.brokerId, brokerId) : undefined
+          )
+        )
+      );
+    
+    return conflicts.length > 0;
   }
 }
 

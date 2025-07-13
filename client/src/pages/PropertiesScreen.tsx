@@ -130,7 +130,7 @@ const PropertiesScreen: React.FC<PropertiesScreenProps> = ({ onNavigate }) => {
     }
   };
 
-  const handleBookVisit = (property: any) => {
+  const handleBookVisit = async (property: any) => {
     // Create a visit booking modal
     const visitModal = document.createElement('div');
     visitModal.innerHTML = `
@@ -196,7 +196,7 @@ const PropertiesScreen: React.FC<PropertiesScreenProps> = ({ onNavigate }) => {
     document.body.appendChild(visitModal);
     
     // Handle visit booking
-    window.handleVisitBooking = () => {
+    window.handleVisitBooking = async () => {
       const dateInput = visitModal.querySelector('input[type="date"]');
       const timeSelect = visitModal.querySelector('select');
       const phoneInput = visitModal.querySelector('input[type="tel"]');
@@ -207,25 +207,75 @@ const PropertiesScreen: React.FC<PropertiesScreenProps> = ({ onNavigate }) => {
         return;
       }
       
-      // Show success message
-      visitModal.innerHTML = `
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="this.remove()">
-          <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 text-center" onclick="event.stopPropagation()">
-            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
+      try {
+        // Check for conflicts first
+        const conflictResponse = await fetch('/api/property-visits/check-conflicts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            date: dateInput.value,
+            time: timeSelect.value,
+            landlordId: property.landlordId,
+            brokerId: property.brokerId
+          })
+        });
+        
+        const conflictData = await conflictResponse.json();
+        
+        if (conflictData.hasConflict) {
+          alert('This time slot is already booked. Please select a different time.');
+          return;
+        }
+        
+        // Create the visit booking
+        const visitData = {
+          propertyId: property.id,
+          tenantId: 8, // Default to test user
+          landlordId: property.landlordId,
+          brokerId: property.brokerId,
+          scheduledDate: dateInput.value,
+          scheduledTime: timeSelect.value,
+          tenantPhone: phoneInput.value,
+          notes: notesTextarea.value || null
+        };
+        
+        const response = await fetch('/api/property-visits', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(visitData)
+        });
+        
+        const visit = await response.json();
+        
+        // Show success message
+        visitModal.innerHTML = `
+          <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="this.remove()">
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 text-center" onclick="event.stopPropagation()">
+              <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold mb-2">Visit Scheduled!</h3>
+              <p class="text-gray-600 mb-4">Your property visit has been scheduled for ${dateInput.value} at ${timeSelect.options[timeSelect.selectedIndex].text}</p>
+              <p class="text-sm text-gray-500 mb-4">Visit ID: ${visit.visitId}</p>
+              <p class="text-sm text-gray-500 mb-6">You will receive a confirmation call on ${phoneInput.value}</p>
+              <p class="text-xs text-gray-400 mb-6">Landlord and broker have been notified automatically</p>
+              <button class="bg-orange-600 text-white py-2 px-6 rounded-lg hover:bg-orange-700" onclick="this.closest('.fixed').remove()">
+                Got it!
+              </button>
             </div>
-            <h3 class="text-lg font-semibold mb-2">Visit Scheduled!</h3>
-            <p class="text-gray-600 mb-4">Your property visit has been scheduled for ${dateInput.value} at ${timeSelect.options[timeSelect.selectedIndex].text}</p>
-            <p class="text-sm text-gray-500 mb-4">Visit ID: VID${Date.now().toString().slice(-6)}</p>
-            <p class="text-sm text-gray-500 mb-6">You will receive a confirmation call on ${phoneInput.value}</p>
-            <button class="bg-orange-600 text-white py-2 px-6 rounded-lg hover:bg-orange-700" onclick="this.closest('.fixed').remove()">
-              Got it!
-            </button>
           </div>
-        </div>
-      `;
+        `;
+        
+      } catch (error) {
+        console.error('Error booking visit:', error);
+        alert('Failed to book visit. Please try again.');
+      }
     };
   };
 
