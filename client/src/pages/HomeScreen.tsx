@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Camera, Users, Wrench, Bell, X, Clock } from 'lucide-react';
+import { Search, Camera, Users, Wrench, Bell, X, Clock, DollarSign } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,7 +9,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUser } from '@/contexts/UserContext';
 import { useQuery } from '@tanstack/react-query';
 
-const HomeScreen: React.FC = () => {
+interface HomeScreenProps {
+  onNavigate?: (screen: string) => void;
+}
+
+const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
   const { userProfile } = useAuth();
   const { setSelectedProperty, setShowPropertyModal, wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useUser();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -143,10 +147,10 @@ const HomeScreen: React.FC = () => {
   };
 
   const quickActions = [
-    { icon: Search, label: 'Search', color: 'bg-rent-blue' },
-    { icon: Camera, label: 'Virtual Tour', color: 'bg-rent-blue' },
+    { icon: Search, label: 'Search', color: 'bg-rent-blue', action: 'properties' },
+    { icon: DollarSign, label: 'Pricing', color: 'bg-rent-blue', action: 'pricing' },
     { icon: Users, label: 'Refer Friends', color: 'bg-rent-blue' },
-    { icon: Wrench, label: 'Services', color: 'bg-rent-blue' },
+    { icon: Wrench, label: 'Services', color: 'bg-rent-blue', action: 'services' },
   ];
 
   const mockProperties = [
@@ -315,9 +319,17 @@ const HomeScreen: React.FC = () => {
         <CardContent className="pt-6">
           <h2 className="text-lg font-semibold mb-3">Quick Actions</h2>
           <div className="grid grid-cols-4 gap-4">
-            {quickActions.map(({ icon: Icon, label, color }, index) => (
-              <div key={index} className="text-center">
-                <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center mx-auto mb-2`}>
+            {quickActions.map(({ icon: Icon, label, color, action }, index) => (
+              <div 
+                key={index} 
+                className="text-center cursor-pointer"
+                onClick={() => {
+                  if (action && onNavigate) {
+                    onNavigate(action);
+                  }
+                }}
+              >
+                <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center mx-auto mb-2 hover:scale-105 transition-transform`}>
                   <Icon className="h-5 w-5 text-rent-accent" />
                 </div>
                 <span className="text-xs text-gray-600">{label}</span>

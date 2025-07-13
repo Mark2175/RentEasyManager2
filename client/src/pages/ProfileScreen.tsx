@@ -1,15 +1,20 @@
 import React from 'react';
-import { User, FileText, CreditCard, Calendar, Headphones, Settings, LogOut } from 'lucide-react';
+import { User, FileText, CreditCard, Calendar, Headphones, Settings, LogOut, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 
-const ProfileScreen: React.FC = () => {
+interface ProfileScreenProps {
+  onNavigate?: (screen: string) => void;
+}
+
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate }) => {
   const { userProfile, logout } = useAuth();
 
   const menuItems = [
+    { icon: DollarSign, label: 'Pricing Plans', color: 'text-rent-accent', action: 'pricing' },
     { icon: FileText, label: 'Rental Agreements', color: 'text-rent-accent' },
     { icon: CreditCard, label: 'Payment History', color: 'text-rent-accent' },
     { icon: Calendar, label: 'Neighborhood Events', color: 'text-rent-accent' },
@@ -85,8 +90,16 @@ const ProfileScreen: React.FC = () => {
         <Card className="bg-white shadow-sm overflow-hidden">
           <CardContent className="p-0">
             <div className="divide-y divide-gray-100">
-              {menuItems.map(({ icon: Icon, label, color }, index) => (
-                <div key={index} className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer">
+              {menuItems.map(({ icon: Icon, label, color, action }, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    if (action && onNavigate) {
+                      onNavigate(action);
+                    }
+                  }}
+                >
                   <div className="flex items-center gap-3">
                     <Icon className={`h-5 w-5 ${color}`} />
                     <span className="text-gray-800">{label}</span>

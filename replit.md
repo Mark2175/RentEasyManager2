@@ -10,6 +10,7 @@ Preferred communication style: Simple, everyday language.
 Database setup: PostgreSQL integration completed successfully (July 2025).
 UI/UX Requirements: View Details buttons should be visible at all times on property cards.
 Business USP: Core value proposition - "Pay brokerage, get services free" - prominently displayed across the app.
+Pricing Plans: Added comprehensive pricing page with tenant and landlord plans, broker commission structure, and FAQ section (July 2025).
 
 ## System Architecture
 
@@ -67,6 +68,12 @@ Business USP: Core value proposition - "Pay brokerage, get services free" - prom
 - **Local Businesses**: Directory of local restaurants and services
 - **Financial Services**: Bajaj Finance FD integration for landlords
 - **Business Model**: Core USP - customers pay brokerage fees and receive moving, maintenance, and support services at no additional cost
+
+### Pricing System
+- **Tenant Plans**: Basic (Free) and Premium (₹999 one-time brokerage)
+- **Landlord Plans**: Basic (₹499/month) and Pro (₹1,499/month)
+- **Broker Commission**: Tiered structure based on property rent value
+- **Navigation**: Accessible from home screen quick actions and profile menu
 
 ## Data Flow
 

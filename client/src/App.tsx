@@ -11,6 +11,7 @@ import PropertiesScreen from "@/pages/PropertiesScreen";
 import ServicesScreen from "@/pages/ServicesScreen";
 import FDOfferScreen from "@/pages/FDOfferScreen";
 import ProfileScreen from "@/pages/ProfileScreen";
+import PricingScreen from "@/pages/PricingScreen";
 import BottomNavigation from "@/components/BottomNavigation";
 import PropertyDetailModal from "@/components/PropertyDetailModal";
 import { useUser } from "@/contexts/UserContext";
@@ -23,7 +24,7 @@ function AppContent() {
   const renderScreen = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeScreen />;
+        return <HomeScreen onNavigate={setActiveTab} />;
       case 'properties':
         return <PropertiesScreen />;
       case 'services':
@@ -31,7 +32,9 @@ function AppContent() {
       case 'fd-offer':
         return <FDOfferScreen />;
       case 'profile':
-        return <ProfileScreen />;
+        return <ProfileScreen onNavigate={setActiveTab} />;
+      case 'pricing':
+        return <PricingScreen onNavigate={setActiveTab} />;
       default:
         return <HomeScreen />;
     }
