@@ -15,11 +15,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate }) => {
 
   const menuItems = [
     { icon: DollarSign, label: 'Pricing Plans', color: 'text-rent-accent', action: 'pricing' },
-    { icon: FileText, label: 'Rental Agreements', color: 'text-rent-accent' },
-    { icon: CreditCard, label: 'Payment History', color: 'text-rent-accent' },
-    { icon: Calendar, label: 'Neighborhood Events', color: 'text-rent-accent' },
-    { icon: Headphones, label: 'Support', color: 'text-rent-accent' },
-    { icon: Settings, label: 'Settings', color: 'text-rent-accent' },
+    { icon: FileText, label: 'Rental Agreements', color: 'text-rent-accent', action: 'rental-agreements' },
+    { icon: CreditCard, label: 'Payment History', color: 'text-rent-accent', action: 'payment-history' },
+    { icon: Calendar, label: 'Neighborhood Events', color: 'text-rent-accent', action: 'neighborhood-events' },
+    { icon: Headphones, label: 'Support', color: 'text-rent-accent', action: 'support' },
+    { icon: Settings, label: 'Settings', color: 'text-rent-accent', action: 'settings' },
   ];
 
   const getInitials = (name: string) => {
@@ -63,7 +63,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate }) => {
                 </Badge>
               </div>
             </div>
-            <Button className="w-full bg-rent-blue text-rent-accent hover:bg-rent-blue-dark">
+            <Button 
+              className="w-full bg-rent-blue text-rent-accent hover:bg-rent-blue-dark"
+              onClick={() => onNavigate && onNavigate('edit-profile')}
+            >
               Edit Profile
             </Button>
           </CardContent>
@@ -74,7 +77,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate }) => {
           <CardContent className="p-4">
             <h3 className="font-semibold text-gray-800 mb-3">My Dashboard</h3>
             <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div 
+                className="text-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => onNavigate && onNavigate('bookings')}
+              >
                 <div className="text-2xl font-bold text-rent-accent">2</div>
                 <div className="text-sm text-gray-600">Active Bookings</div>
               </div>

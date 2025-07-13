@@ -12,6 +12,13 @@ import ServicesScreen from "@/pages/ServicesScreen";
 import FDOfferScreen from "@/pages/FDOfferScreen";
 import ProfileScreen from "@/pages/ProfileScreen";
 import PricingScreen from "@/pages/PricingScreen";
+import EditProfileScreen from "@/pages/EditProfileScreen";
+import BookingsScreen from "@/pages/BookingsScreen";
+import RentalAgreementsScreen from "@/pages/RentalAgreementsScreen";
+import PaymentHistoryScreen from "@/pages/PaymentHistoryScreen";
+import NeighborhoodEventsScreen from "@/pages/NeighborhoodEventsScreen";
+import SupportScreen from "@/pages/SupportScreen";
+import SettingsScreen from "@/pages/SettingsScreen";
 import BottomNavigation from "@/components/BottomNavigation";
 import PropertyDetailModal from "@/components/PropertyDetailModal";
 import { useUser } from "@/contexts/UserContext";
@@ -28,15 +35,29 @@ function AppContent() {
       case 'properties':
         return <PropertiesScreen />;
       case 'services':
-        return <ServicesScreen />;
+        return <ServicesScreen onNavigate={setActiveTab} />;
       case 'fd-offer':
         return <FDOfferScreen />;
       case 'profile':
         return <ProfileScreen onNavigate={setActiveTab} />;
       case 'pricing':
         return <PricingScreen onNavigate={setActiveTab} />;
+      case 'edit-profile':
+        return <EditProfileScreen onNavigate={setActiveTab} />;
+      case 'bookings':
+        return <BookingsScreen onNavigate={setActiveTab} />;
+      case 'rental-agreements':
+        return <RentalAgreementsScreen onNavigate={setActiveTab} />;
+      case 'payment-history':
+        return <PaymentHistoryScreen onNavigate={setActiveTab} />;
+      case 'neighborhood-events':
+        return <NeighborhoodEventsScreen onNavigate={setActiveTab} />;
+      case 'support':
+        return <SupportScreen onNavigate={setActiveTab} />;
+      case 'settings':
+        return <SettingsScreen onNavigate={setActiveTab} />;
       default:
-        return <HomeScreen />;
+        return <HomeScreen onNavigate={setActiveTab} />;
     }
   };
 
