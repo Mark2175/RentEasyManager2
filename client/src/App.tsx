@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { UserProvider } from "@/contexts/UserContext";
+import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import AuthScreen from "@/pages/AuthScreen";
 import HomeScreen from "@/pages/HomeScreen";
 import PropertiesScreen from "@/pages/PropertiesScreen";
@@ -23,11 +24,15 @@ import BookingFlowScreen from "@/pages/BookingFlowScreen";
 import PaymentScreen from "@/pages/PaymentScreen";
 import BottomNavigation from "@/components/BottomNavigation";
 import PropertyDetailModal from "@/components/PropertyDetailModal";
+import ComparisonBar from "@/components/ComparisonBar";
+import PropertyComparisonDashboard from "@/components/PropertyComparisonDashboard";
 import { useUser } from "@/contexts/UserContext";
+import { useComparison } from "@/contexts/ComparisonContext";
 
 function AppContent() {
   const { user, loading } = useAuth();
   const { selectedProperty, showPropertyModal, setShowPropertyModal } = useUser();
+  const { comparisonProperties, isComparisonOpen, closeComparison, removeFromComparison } = useComparison();
   const [activeTab, setActiveTab] = useState('home');
 
   const renderScreen = () => {
@@ -86,11 +91,28 @@ function AppContent() {
     <div className="max-w-md mx-auto bg-white min-h-screen relative">
       {renderScreen()}
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <ComparisonBar />
       <PropertyDetailModal 
         property={selectedProperty}
         isOpen={showPropertyModal}
         onClose={() => setShowPropertyModal(false)}
       />
+      {isComparisonOpen && (
+        <PropertyComparisonDashboard
+          properties={comparisonProperties}
+          isOpen={isComparisonOpen}
+          onClose={closeComparison}
+          onRemoveProperty={removeFromComparison}
+          onViewProperty={(property) => {
+            setSelectedProperty(property);
+            setShowPropertyModal(true);
+          }}
+          onBookProperty={(property) => {
+            setSelectedProperty(property);
+            setActiveTab('booking-flow');
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -101,8 +123,10 @@ function App() {
       <TooltipProvider>
         <AuthProvider>
           <UserProvider>
-            <Toaster />
-            <AppContent />
+            <ComparisonProvider>
+              <Toaster />
+              <AppContent />
+            </ComparisonProvider>
           </UserProvider>
         </AuthProvider>
       </TooltipProvider>

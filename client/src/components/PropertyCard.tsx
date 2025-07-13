@@ -1,9 +1,10 @@
 import React from 'react';
-import { MapPin, Bed, Bath, Square, Eye, Heart, User, Building, Info, Shield, Home, Calendar } from 'lucide-react';
+import { MapPin, Bed, Bath, Square, Eye, Heart, User, Building, Info, Shield, Home, Calendar, ArrowRightLeft, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useComparison } from '@/contexts/ComparisonContext';
 
 interface PropertyCardProps {
   property: {
@@ -41,6 +42,7 @@ interface PropertyCardProps {
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, onVirtualTour, onWishlistToggle, onBookNow, onBookVisit, isInWishlist }) => {
+  const { addToComparison, removeFromComparison, isInComparison, canAddMore } = useComparison();
   const formatRent = (rent: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -87,18 +89,41 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
             className="w-full h-48 object-cover"
           />
           
-          {/* Wishlist Button */}
-          <Button
-            size="sm"
-            variant="ghost"
-            className="absolute top-4 left-4 bg-white/80 hover:bg-white/90 text-gray-700 p-2"
-            onClick={(e) => {
-              e.stopPropagation();
-              onWishlistToggle(property);
-            }}
-          >
-            <Heart className={`h-4 w-4 ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-          </Button>
+          {/* Wishlist and Compare Buttons */}
+          <div className="absolute top-4 left-4 flex gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="bg-white/80 hover:bg-white/90 text-gray-700 p-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                onWishlistToggle(property);
+              }}
+            >
+              <Heart className={`h-4 w-4 ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+            </Button>
+            
+            <Button
+              size="sm"
+              variant="ghost"
+              className="bg-white/80 hover:bg-white/90 text-gray-700 p-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isInComparison(property.id)) {
+                  removeFromComparison(property.id);
+                } else if (canAddMore) {
+                  addToComparison(property);
+                }
+              }}
+              disabled={!canAddMore && !isInComparison(property.id)}
+            >
+              {isInComparison(property.id) ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <ArrowRightLeft className="h-4 w-4 text-gray-600" />
+              )}
+            </Button>
+          </div>
           
           <div className="absolute top-4 right-4 flex flex-col gap-2">
             {freshnessBadge && (
