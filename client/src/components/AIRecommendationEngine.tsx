@@ -21,6 +21,28 @@ interface AIRecommendation {
     bedrooms: number;
     bathrooms: number;
     sqft: number;
+  // Mark added fields
+   
+    AptFloor: number;
+    AptFacing: string;
+    AptAge: number;
+    AptFurnished: boolean;
+    AptParking: boolean;
+    AptBalcony: boolean;
+    AptSecurity: boolean;
+    AptPowerBackup: boolean;
+    AptGym: boolean;
+    AptClubHouse: boolean;
+    AptSwimmingPool: boolean;
+    AptKidsPlayArea: boolean;
+    AptPetFriendly: boolean;
+    AptMaintenance: number;
+    AptDeposit: number;
+    AptRent: number;
+    AptRentNegotiable: boolean;
+   
+    // Mark added fields
+    
     amenities: string[];
   };
   matchScore: number;

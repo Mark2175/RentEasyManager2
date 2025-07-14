@@ -18,7 +18,7 @@ interface PropertyCardProps {
     sqft?: number;
     bedrooms?: number;
     bathrooms?: number;
-    floor?: string;
+    floor?: number;
     securityPersonAvailable?: boolean;
     images?: string[];
     isAvailable: boolean;
@@ -26,7 +26,9 @@ interface PropertyCardProps {
     amenities?: string[];
     landlordId?: number;
     brokerId?: number;
-    landlordName?: string;
+    //MARK REMOVED FIELDS
+   // landlordName?: string;
+    //MARK REMOVED FIELDS
     brokerName?: string;
     brokerageFee?: number;
     description?: string;
@@ -200,8 +202,8 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property, onViewDetails, on
                     </div>
                   ) : (
                     <div>
-                      <p><strong>Listed by:</strong> {property.landlordName || 'Owner'}</p>
-                      <p><strong>No Brokerage Fee</strong></p>
+                      {/* <p><strong>Listed by:</strong> {property.landlordName || 'Owner'}</p> */}
+                      <p><strong>Brokerage Fee by RentEasy </strong></p>
                       <p className="text-green-600 mt-1">• Direct contact with owner</p>
                       <p className="text-green-600">• No extra charges</p>
                     </div>

@@ -5,7 +5,11 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useComparison } from '@/contexts/ComparisonContext';
 
-const ComparisonBar: React.FC = () => {
+interface ComparisonBarProps {
+  onNavigate?: (screen: string) => void;
+}
+
+const ComparisonBar: React.FC<ComparisonBarProps> = ({ onNavigate }) => {
   const { 
     comparisonProperties, 
     removeFromComparison, 
@@ -88,7 +92,7 @@ const ComparisonBar: React.FC = () => {
             </Button>
             
             <Button
-              onClick={openComparison}
+              onClick={() => onNavigate?.('comparison')}
               className="bg-rent-accent hover:bg-rent-accent/90"
               disabled={comparisonProperties.length < 2}
             >

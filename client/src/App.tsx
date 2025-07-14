@@ -24,6 +24,7 @@ import BookingFlowScreen from "@/pages/BookingFlowScreen";
 import PaymentScreen from "@/pages/PaymentScreen";
 import HeatmapScreen from "@/pages/HeatmapScreen";
 import VerificationScreen from "@/pages/VerificationScreen";
+import ComparisonScreen from "@/pages/ComparisonScreen";
 import BottomNavigation from "@/components/BottomNavigation";
 import PropertyDetailModal from "@/components/PropertyDetailModal";
 import ComparisonBar from "@/components/ComparisonBar";
@@ -76,6 +77,8 @@ function AppContent() {
         return <HeatmapScreen onNavigate={setActiveTab} />;
       case 'verification':
         return <VerificationScreen onNavigate={setActiveTab} />;
+      case 'comparison':
+        return <ComparisonScreen onNavigate={setActiveTab} />;
       default:
         return <HomeScreen onNavigate={setActiveTab} />;
     }
@@ -100,11 +103,12 @@ function AppContent() {
     <div className="max-w-md mx-auto bg-white min-h-screen relative">
       {renderScreen()}
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-      <ComparisonBar />
+      <ComparisonBar onNavigate={setActiveTab} />
       <PropertyDetailModal 
         property={selectedProperty}
         isOpen={showPropertyModal}
         onClose={() => setShowPropertyModal(false)}
+        onViewMore={() => setActiveTab('properties')}
       />
       {isComparisonOpen && (
         <PropertyComparisonDashboard

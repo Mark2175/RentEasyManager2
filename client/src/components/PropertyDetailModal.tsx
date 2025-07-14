@@ -9,9 +9,10 @@ interface PropertyDetailModalProps {
   property: any;
   isOpen: boolean;
   onClose: () => void;
+  onViewMore?: () => void;
 }
 
-const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, isOpen, onClose }) => {
+const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, isOpen, onClose, onViewMore }) => {
   const [showVirtualTour, setShowVirtualTour] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useUser();
@@ -243,6 +244,29 @@ const PropertyDetailModal: React.FC<PropertyDetailModalProps> = ({ property, isO
               </Button>
             </div>
           </div>
+
+          {/* View More Properties Section */}
+          {onViewMore && (
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold text-gray-800">Seen this property?</h4>
+                  <p className="text-sm text-gray-600">Explore more similar properties</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    onViewMore();
+                    onClose();
+                  }}
+                  className="bg-rent-blue text-rent-accent border-rent-accent"
+                >
+                  View More Properties
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
       

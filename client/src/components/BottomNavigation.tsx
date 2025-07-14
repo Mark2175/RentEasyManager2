@@ -11,7 +11,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
     { id: 'home', label: 'Home', icon: Home },
     { id: 'properties', label: 'Properties', icon: Building },
     { id: 'services', label: 'Services', icon: Bell },
-    { id: 'fd-offer', label: 'FD Offer', icon: PiggyBank },
+    { id: 'fd-offer', label: 'Bank Offers', icon: PiggyBank },
     { id: 'profile', label: 'Profile', icon: User },
   ];
 
